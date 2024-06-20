@@ -55,19 +55,38 @@ class Authentication {
 
   //Hàm đăng kí Sign Up
   SignUp(req, res) {
-      const sql = `INSERT INTO user (phoneNumber, password, name) VALUES (?)`;
+      const sql = `INSERT INTO user (phoneNumber, password, name, email, sex, address, parent_name, parent_phone, parent_email, mother_name, mother_phone, mother_email) VALUES (?)`;
       bcrypt.hash(req.body.password.toString(), salt, (err, hash) => {
           if (err) return res.json({ Error: "Error for hashing password" });
           const values = [
               req.body.phoneNumber,
               hash,
               req.body.name,
+              req.body.email,
+              req.body.sex,
+              req.body.address,
+              req.body.parent_name,
+              req.body.parent_phone,
+              req.body.parent_email,
+              req.body.mother_name,
+              req.body.mother_phone,
+              req.body.mother_email
           ]
           connection.query(sql, [values], (err, result) => {
               console.log("Phone Number: ", req.body.phoneNumber);
               console.log('Password: ', req.body.password);
               console.log("Hashed Password: ", hash);
               console.log("Name: ", req.body.name);
+              console.log("Email: ", req.body.email);
+              console.log("Sex: ", req.body.sex);
+              console.log("Address: ", req.body.address);
+              console.log("Father Name: ", req.body.parent_name);
+              console.log("Father Phone: ", req.body.parent_phone);
+              console.log("Father Email: ", req.body.parent_email);
+              console.log("Mother Name: ", req.body.mother_name);
+              console.log("Mother Phone: ", req.body.mother_phone);
+              console.log("Mother Email: ", req.body.mother_email);
+
 
               if (err) {
                   console.log(err);
