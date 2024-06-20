@@ -1,0 +1,24 @@
+
+const {connection} = require('../configuration/dbConfig')
+
+class Contact{
+    GetAllContacts(req,res){
+    const query = 'SELECT * FROM contact';
+    connection.query(query, (err, results) => {
+        if (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Lỗi server' });
+        }
+
+        const contacts = results.map(contact => ({
+        avatar: contact.avatar,
+        phoneNumber: contact.phoneNumber,
+        name: contact.name,
+        category: contact.category
+        }));
+
+        res.json({ contacts });
+    });
+    }
+}
+module.exports = new Contact;
