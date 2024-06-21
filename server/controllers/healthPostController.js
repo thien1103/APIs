@@ -6,7 +6,7 @@ class HealthPost{
     connection.query('SELECT * FROM healthPost', (err, results) => {
         if (err) {
           console.error(err);
-          return res.status(500).json({ message: 'Lỗi khi lấy dữ liệu' });
+          return res.status(500).json({ message: 'Lỗi khi lấy dữ liệu ' });
         }
     
         const posts = results.map(post => ({
