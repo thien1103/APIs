@@ -9,35 +9,35 @@ const salt = 10;
 class Authentication {
   //Hàm đăng nhập Sign In
   SignIn(req, res, next) {
-      const sql = (
-          "(SELECT userId, phoneNumber, password, name FROM user WHERE phoneNumber = ?) " 
-        //Trong trường hợp cần hợp data của 2 table
-      //    "UNION " +
-      //   "(SELECT idEmployee as id, fullname, email, password, NULL as role FROM employee WHERE email = ?)"
-      
-      );
-      connection.query(sql, req.body.phoneNumber, (err, data) => {
-          if (err) {
-              console.log(err);
-              return res.json({ Error: "Tài khoản không tồn tại" });
-          }
-          if (data.length > 0) {
-              bcrypt.compare(req.body.password.toString(), data[0].password, (err, response) => {
-                  if (err) return res.json({ Error: "Có lỗi trong quá trình xử lí" });
-                  if (response) {
-                      const name = data[0].name;
-                      const phoneNumber = data[0].phoneNumber;
-                      const userId = data[0].userId;
-                      console.log(name);
-                      const token = jwt.sign({ name, phoneNumber, userId }, "jwt-secret-key", { expiresIn: '1d' });
-                      return res.json({userId:data[0].userId, token, message: 'Đăng nhập thành công' })
-                  } else {
-                      return res.json({ passwordError: "Sai mật khẩu" });
-                  }
-              });
-          }
-      })
-  }
+    const sql = "(SELECT userId, phoneNumber, password, name FROM user WHERE phoneNumber = ?)";
+    connection.query(sql, [req.body.phoneNumber], (err, data) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).json({ Error: "Có lỗi trong quá trình xử lí" });
+        }
+
+        if (data.length === 0) {
+            return res.status(404).json({ Error: "Tài khoản không tồn tại" });
+        }
+
+        bcrypt.compare(req.body.password.toString(), data[0].password, (err, response) => {
+            if (err) {
+                return res.status(500).json({ Error: "Có lỗi trong quá trình xử lí" });
+            }
+
+            if (!response) {
+                return res.status(401).json({ passwordError: "Sai mật khẩu" });
+            }
+
+            const name = data[0].name;
+            const phoneNumber = data[0].phoneNumber;
+            const userId = data[0].userId;
+            console.log(name);
+            const token = jwt.sign({ name, phoneNumber, userId }, "jwt-secret-key", { expiresIn: '1d' });
+            return res.status(200).json({ userId: data[0].userId, token, message: 'Đăng nhập thành công' });
+        });
+    });
+}
   // checkPhoneExist(req, res) {
   //     console.log("Phone Number: ", req.body.phoneNumber);
   //     const userSql = `SELECT COUNT(*) AS count FROM user WHERE phoneNumber = ?`;
@@ -55,51 +55,50 @@ class Authentication {
 
   //Hàm đăng kí Sign Up
   SignUp(req, res) {
-      const sql = `INSERT INTO user (phoneNumber, password, name, email, sex, address, parent_name, parent_phone, parent_email, mother_name, mother_phone, mother_email) VALUES (?)`;
-      bcrypt.hash(req.body.password.toString(), salt, (err, hash) => {
-          if (err) return res.json({ Error: "Error for hashing password" });
-          const values = [
-              req.body.phoneNumber,
-              hash,
-              req.body.name,
-              req.body.email,
-              req.body.sex,
-              req.body.address,
-              req.body.parent_name,
-              req.body.parent_phone,
-              req.body.parent_email,
-              req.body.mother_name,
-              req.body.mother_phone,
-              req.body.mother_email
-          ]
-          connection.query(sql, [values], (err, result) => {
-              console.log("Phone Number: ", req.body.phoneNumber);
-              console.log('Password: ', req.body.password);
-              console.log("Hashed Password: ", hash);
-              console.log("Name: ", req.body.name);
-              console.log("Email: ", req.body.email);
-              console.log("Sex: ", req.body.sex);
-              console.log("Address: ", req.body.address);
-              console.log("Father Name: ", req.body.parent_name);
-              console.log("Father Phone: ", req.body.parent_phone);
-              console.log("Father Email: ", req.body.parent_email);
-              console.log("Mother Name: ", req.body.mother_name);
-              console.log("Mother Phone: ", req.body.mother_phone);
-              console.log("Mother Email: ", req.body.mother_email);
+    const sql = `INSERT INTO user (phoneNumber, password, name, email, sex, address, parent_name, parent_phone, parent_email, mother_name, mother_phone, mother_email) VALUES (?)`;
+    bcrypt.hash(req.body.password.toString(), salt, (err, hash) => {
+        if (err) {
+            return res.status(500).json({ Error: "Error for hashing password" });
+        }
+        const values = [
+            req.body.phoneNumber,
+            hash,
+            req.body.name,
+            req.body.email,
+            req.body.sex,
+            req.body.address,
+            req.body.parent_name,
+            req.body.parent_phone,
+            req.body.parent_email,
+            req.body.mother_name,
+            req.body.mother_phone,
+            req.body.mother_email
+        ]
+        connection.query(sql, [values], (err, result) => {
+            console.log("Phone Number: ", req.body.phoneNumber);
+            console.log('Password: ', req.body.password);
+            console.log("Hashed Password: ", hash);
+            console.log("Name: ", req.body.name);
+            console.log("Email: ", req.body.email);
+            console.log("Sex: ", req.body.sex);
+            console.log("Address: ", req.body.address);
+            console.log("Father Name: ", req.body.parent_name);
+            console.log("Father Phone: ", req.body.parent_phone);
+            console.log("Father Email: ", req.body.parent_email);
+            console.log("Mother Name: ", req.body.mother_name);
+            console.log("Mother Phone: ", req.body.mother_phone);
+            console.log("Mother Email: ", req.body.mother_email);
 
-
-              if (err) {
-                  console.log(err);
-                  return res.json({ Error: "Đăng kí không thành công" });
-              }
-              
-              else {
+            if (err) {
+                console.log(err);
+                return res.status(400).json({ Error: "Đăng kí không thành công" });
+            } else {
                 const userId = result.insertId;
-                return res.json({ userId, Status: "Đăng kí thành công" });
-              }
-          })
-      })
-  }
+                return res.status(201).json({ userId, Status: "Đăng kí thành công" });
+            }
+        })
+    })
+}
 
   //Hàm đăng xuất
   logoutExecute(req, res, next) {

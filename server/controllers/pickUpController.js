@@ -53,10 +53,10 @@ class PickUp{
         const { pickupId } = req.params;
         const { userId, phoneNumber, relationship, idNumber, action, note } = req.body;
       
-        // Trim the userId value to remove any leading/trailing spaces
+        //Dùng hàm Trim cho biến userId để xóa khoảng trống
         const trimmedUserId = userId.trim();
       
-        // Check if trimmedUserId is provided and not an empty string
+        // check biến trimmedUserId sau khi đã xóa khoảng trống xem còn khoảng trống không
         if (!trimmedUserId) {
           return res.status(400).json({ error: 'Vui lòng cung cấp userId' });
         }
