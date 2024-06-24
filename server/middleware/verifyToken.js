@@ -6,7 +6,7 @@ async function verifyToken(req, res, next) {
 
   //kiểm tra có token không
   if (!authorizationHeader) {
-    return res.status(401).json({ Error: '[Unauthorized] Bạn không có quyền truy cập' });
+    return res.status(401).json({status_code: 401, type:"error", message:"[Unauthorized] Bạn không có quyền truy cập"});
   }
 
   // tách token khỏi header
@@ -22,7 +22,7 @@ async function verifyToken(req, res, next) {
       token
     );
     if (rows.length > 0) {
-      return res.status(401).json({ Error: 'Token đã bị vô hiệu hóa' });
+      return res.status(401).json({status_code: 401, type:"error", message:"Token đã bị vô hiệu hóa"});
     }
 
     // gắn biến đã decode vào payload
@@ -33,10 +33,10 @@ async function verifyToken(req, res, next) {
 
     // Check token đã hết hạn chưa
     if (err.name === 'TokenExpiredError') {
-      return res.status(401).json({ Error: 'Token đã hết hạn' });
+      return res.status(401).json({status_code: 401, type:"error", message:"Token đã hết hạn"});
     }
 
-    return res.status(401).json({ Error: 'Token không hợp lệ' });
+    return res.status(401).json({status_code: 401, type:"error", message:"Token không hợp lệ"});
   }
 }
 
