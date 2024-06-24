@@ -112,10 +112,10 @@ class Authentication {
         res.clearCookie('token');
         console.log("Cookie is cleared");
         // Trả về thành công
-        return res.json({ status_code: 200, type: "success", message: "Đăng xuất thành công" });
+        return res.status(200).json({ status_code: 200, type: "success", message: "Đăng xuất thành công" });
     } catch (error) {
       console.error("Error during logout:", error);
-      return res.json({ status_code: 500, type: "error", message: "Lỗi server" });
+      return res.status(500).json({ status_code: 500, type: "error", message: "Lỗi server" });
     }
   }
 //   //Hàm chỉ định verify cho token

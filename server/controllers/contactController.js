@@ -17,7 +17,7 @@ class Contact{
         category: contact.category
         }));
 
-        res.json({ contacts });
+        res.status(200).json({status_code: 200, type:"success", message: contacts });
     });
     }
 }

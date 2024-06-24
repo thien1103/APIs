@@ -34,7 +34,7 @@ class HealthPost {
       }
 
       const post = result[0];
-      res.json({
+      res.status(200).json({
         status_code: 200, type:"success", message:{ postId: post.postId, title: post.title, content: post.content, image: post.image,}
       });
     });
