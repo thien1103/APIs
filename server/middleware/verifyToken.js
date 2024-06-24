@@ -1,33 +1,43 @@
 const jwt = require('jsonwebtoken');
+const { connection } = require('../configuration/dbConfig');
 
-function verifyToken(req, res, next) {
+async function verifyToken(req, res, next) {
   const authorizationHeader = req.headers.authorization;
 
-  // Check if the Authorization header is present
+  //kiểm tra có token không
   if (!authorizationHeader) {
     return res.status(401).json({ Error: '[Unauthorized] Bạn không có quyền truy cập' });
   }
 
-  // Extract the token from the Authorization header
+  // tách token khỏi header
   const token = authorizationHeader.split(' ')[1];
 
-  // Verify the token
-  jwt.verify(token, 'jwt-secret-key', (err, decoded) => {
-    if (err) {
-      console.error(err);
+  try {
+    //kiểm tra token
+    const decoded = await jwt.verify(token, 'jwt-secret-key');
 
-      // Check if the error is due to an expired token
-      if (err.name === 'TokenExpiredError') {
-        return res.status(401).json({ Error: 'Token đã hết hạn' });
-      }
-
-      return res.status(401).json({ Error: 'Token không hợp lệ' });
+    // Kiểm tra xem token có trong danh sách đen không
+    const rows = connection.query(
+      'SELECT * FROM blacklisted_tokens WHERE token = ?',
+      token
+    );
+    if (rows.length > 0) {
+      return res.status(401).json({ Error: 'Token đã bị vô hiệu hóa' });
     }
 
-    // Attach the decoded payload to the request object
+    // gắn biến đã decode vào payload
     req.user = decoded;
     next();
-  });
+  } catch (err) {
+    console.error(err);
+
+    // Check token đã hết hạn chưa
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ Error: 'Token đã hết hạn' });
+    }
+
+    return res.status(401).json({ Error: 'Token không hợp lệ' });
+  }
 }
 
 module.exports = verifyToken;

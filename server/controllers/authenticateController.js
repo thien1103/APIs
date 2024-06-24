@@ -6,6 +6,7 @@ const salt = 10;
 
 
 
+
 class Authentication {
   //Hàm đăng nhập Sign In
   SignIn(req, res, next) {
@@ -32,7 +33,7 @@ class Authentication {
         const payload = { userId: data[0].userId };
 
         // Ensure to use the same secret key
-        const token = jwt.sign(payload, "jwt-secret-key", { algorithm: 'HS256', expiresIn: '5m' });
+        const token = jwt.sign(payload, "jwt-secret-key", { algorithm: 'HS256', expiresIn: '10m' });
         return res.status(200).json({ statuts_code: 200, type: "success", message: 'Đăng nhập thành công', data:{userId: data[0].userId, token}});
       });
     });
@@ -101,18 +102,22 @@ class Authentication {
 }
 
   //Hàm đăng xuất
-  logoutExecute(req, res, next) {
-      try { 
-          res.clearCookie('token');
-          console.log("Cookie is cleared");
-
-          return res.json({status_code: 200, type:"success", message:"Đăng xuất thành công"});
-      } catch (error) {
-          console.error("Error during logout:", error);
-          return res.json({status_code: 500, type:"error", message:"Lỗi server"});
-      }
-  }
+  async logoutExecute(req, res, next) {
+    try {
+      const authorizationHeader = req.headers.authorization;
   
+      // Extract the token from the Authorization header
+      const token = authorizationHeader.split(' ')[1];
+        // Clear cookie
+        res.clearCookie('token');
+        console.log("Cookie is cleared");
+        // Trả về thành công
+        return res.json({ status_code: 200, type: "success", message: "Đăng xuất thành công" });
+    } catch (error) {
+      console.error("Error during logout:", error);
+      return res.json({ status_code: 500, type: "error", message: "Lỗi server" });
+    }
+  }
 //   //Hàm chỉ định verify cho token
 //   showVerifyUser(req, res) {
 //     return res.json({ Status: "Success", name: req.name, phoneNumber: req.phoneNumber, userId: req.userId });
