@@ -11,11 +11,11 @@ class User{
         connection.query(getUserSql, [userId], (err, result) => {
           if (err) {
             console.log(err);
-            return res.status(500).json({ error: 'Lỗi: Không thể lấy thông tin người dùng, vui lòng thử lại sau' });
+            return res.status(500).json({status_code: 500, type:"error", message:"Lỗi server"});
           }
       
           if (result.length === 0) {
-            return res.status(404).json({ error: 'Lỗi: Người dùng không tồn tại' });
+            return res.status(404).json({status_code: 404, type:"error", message:"Lỗi người dùng không tồn tại"});
           }
       
           const user = result[0];
@@ -39,7 +39,7 @@ class User{
               }
             };
       
-            return res.json(userInfo);
+            return res.status(200).json({status_code: 200, type:"success", message: userInfo});
           });
       }
 
@@ -77,14 +77,14 @@ class User{
         connection.query(updateUserSql, updateParams, (err, result) => {
           if (err) {
             console.log(err);
-            return res.status(500).json({ error: 'Lỗi: Không thể cập nhật thông tin người dùng, vui lòng thử lại sau' });
+            return res.status(500).json({status_code: 500, type:"error", message:"Lỗi server"});
           }
       
           if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Lỗi: Người dùng không tồn tại' });
+            return res.status(404).json({status_code: 404, type:"error", message:"Người dùng không tồn tại"});
           }
       
-          return res.json({ message: 'Thông tin người dùng đã được cập nhật thành công' });
+          return res.status(200).json({status_code: 200, type:"success", message:"Thông tin người dùng đã được cập nhật thành công"});
         });
       }
 

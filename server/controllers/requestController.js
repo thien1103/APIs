@@ -7,7 +7,7 @@ class Request{
 
         // Kiểm tra dữ liệu đầu vào
         if (!title || !startDateTime || !endDateTime || !content || !status || !userId) {
-            return res.status(400).json({ error: 'Lỗi: Thiếu dữ liệu bắt buộc' });
+            return res.status(400).json({status_code: 400, type:"error", message:"Vui lòng điền đầy đủ thông tin"});
         }
 
         // Chuyển đổi định dạng datetime
@@ -19,10 +19,10 @@ class Request{
         connection.query(query, [title, start, end, content, status, userId], (err, result) => {
             if (err) {
             console.error(err);
-            return res.status(500).json({ error: 'Lỗi: Không thể gửi yêu cầu xin nghỉ' });
+            return res.status(500).json({status_code: 500, type:"error", message:"Lỗi server"});
             }
 
-            return res.json({ message: 'Yêu cầu xin nghỉ đã được gửi thành công' });
+            return res.status(200).json({status_code: 200, type:"success", message:"Yêu cầu xin nghỉ đã được gửi"});
         });
     }
 
@@ -38,19 +38,19 @@ class Request{
             (err, result) => {
               if (err) {
                 console.error(err);
-                return res.status(500).json({ error: 'Lỗi: Không thể cập nhật thông tin yêu cầu xin nghỉ, vui lòng thử lại sau' });
+                return res.status(500).json({status_code: 500, type:"error", message:"Lỗi server"});
               }
       
               if (result.affectedRows === 0) {
-                return res.status(404).json({ error: 'Không tìm thấy yêu cầu nghỉ phép' });
+                return res.status(404).json({status_code: 404, type:"error", message:"Không tìm thấy yêu cầu xin nghỉ phép"});
               }
       
-              res.json({ message: 'Thông tin yêu cầu xin nghỉ đã được cập nhật thành công' });
+              res.status(200).json({status_code: 200, type:"success", message:"Yêu cầu xin nghỉ đã được cập nhật thành công"});
             }
           );
         } catch (err) {
           console.error(err);
-          res.status(500).json({ error: 'Lỗi: Không thể cập nhật thông tin yêu cầu xin nghỉ, vui lòng thử lại sau' });
+          res.status(500).json({status_code: 500, type:"error", message:"Lỗi server"});
         }
       }
 
@@ -63,19 +63,19 @@ class Request{
               (err, result) => {
                   if (err) {
                     console.error(err);
-                    return res.status(500).json({ error: 'Lỗi: Không thể xóa yêu cầu xin nghỉ, vui lòng thử lại sau' });
+                    return res.status(500).json({status_code: 500, type:"error", message:"Lỗi server"});
                   }
           
                   if (result.affectedRows === 0) {
-                    return res.status(404).json({ error: 'Không tìm thấy yêu cầu nghỉ phép' });
+                    return res.status(404).json({status_code: 404, type:"error", message:"Không tìm thấy yêu cầu xin nghỉ phép"});
                   }
           
-                  res.json({ message: 'Yêu cầu xin nghỉ đã được xóa thành công' });
+                  res.status(200).json({status_code: 200, type:"success", message:"Yêu cầu xin nghỉ đã được xóa"});
                 }
               );
             } catch (err) {
               console.error(err);
-              res.status(500).json({ error: 'Lỗi: Không thể xóa yêu cầu xin nghỉ, vui lòng thử lại sau' });
+              res.status(500).json({status_code: 500, type:"error", message:"Lỗi server"});
             }
           }
 
@@ -85,7 +85,7 @@ class Request{
               connection.query('SELECT * FROM requests', (err, results) => {
                 if (err) {
                   console.error(err);
-                  return res.status(500).json({ error: 'Lỗi: Không thể lấy danh sách yêu cầu xin nghỉ, vui lòng thử lại sau' });
+                  return res.status(500).json({status_code: 500, type:"error", message:"Lỗi server"});
                 }
           
                 const leaveRequests = results.map((request) => ({
@@ -98,11 +98,11 @@ class Request{
                   userId: request.userId,
                 }));
           
-                res.json({ leaveRequests });
+                res.statuts(200).json({status_code: 200, type:"success", message: leaveRequests});
               });
             } catch (err) {
               console.error(err);
-              res.status(500).json({ error: 'Lỗi: Không thể lấy danh sách yêu cầu xin nghỉ, vui lòng thử lại sau' });
+              res.status(500).json({status_code: 500, type:"error", message:"Lỗi server"});
             }
           }
     }

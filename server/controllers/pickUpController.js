@@ -58,7 +58,7 @@ class PickUp{
       
         // check biến trimmedUserId sau khi đã xóa khoảng trống xem còn khoảng trống không
         if (!trimmedUserId) {
-          return res.status(400).json({ error: 'Vui lòng cung cấp userId' });
+          return res.status(404).json({status_code: 404, type:"error", message:"Lỗi không tìm thấy ID người dùng"});
         }
       
         const query = 'UPDATE pickups SET userId = ?, phoneNumber = ?, relationship = ?, idNumber = ?, action = ?, note = ? WHERE pickupId = ?';
@@ -68,14 +68,14 @@ class PickUp{
           (err, result) => {
             if (err) {
               console.error(err);
-              return res.status(500).json({ error: 'Lỗi: Không thể cập nhật thông tin đưa đón, vui lòng thử lại sau' });
+              return res.status(500).json({status_code: 500, type:"error", message:"Lỗi không thể cập nhật thông tin đưa đón. Vui lòng thử lại sau"});
             }
       
             if (result.affectedRows === 0) {
-              return res.status(404).json({ error: 'Không tìm thấy thông tin đưa đón với id này' });
+              return res.status(404).json({status_code: 404, type:"error", message:"Không tìm thấy thông tin đưa đón với ID này"});
             }
       
-            return res.json({ message: 'Thông tin đưa đón đã được cập nhật thành công' });
+            return res.status(200).json({status_code: 200, type:"success", message:"Cập nhật thông tin đưa đón thành công"});
           }
         );
       }
@@ -91,14 +91,14 @@ class PickUp{
           (err, result) => {
             if (err) {
               console.error(err);
-              return res.status(500).json({ error: 'Lỗi: Không thể xóa đưa đón, vui lòng thử lại sau' });
+              return res.status(500).json({status_code: 500, type:"error", message:"Lỗi server"});
             }
       
             if (result.affectedRows === 0) {
-              return res.status(404).json({ error: 'Không tìm thấy thông tin đưa đón với id này' });
+              return res.status(404).json({status_code: 404, type:"error", message:"Thông tin đưa đón không tồn tại"});
             }
       
-            return res.json({ message: 'Đưa đón đã được xóa thành công' });
+            return res.status(200).json({status_code: 200, type:"success", message:"Thông tin đưa đón được xóa thành công"});
           }
         );
       }

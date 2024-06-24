@@ -9,35 +9,35 @@ const salt = 10;
 class Authentication {
   //Hàm đăng nhập Sign In
   SignIn(req, res, next) {
-    const sql = "(SELECT userId, phoneNumber, password, name FROM user WHERE phoneNumber = ?)";
+    const sql = "SELECT userId, phoneNumber, password, name FROM user WHERE phoneNumber = ?";
     connection.query(sql, [req.body.phoneNumber], (err, data) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).json({status_code: 500, type:"error", message:"Lỗi server"});
+      }
+
+      if (data.length === 0) {
+        return res.status(404).json({status_code: 404, type:"error", message:"Người dùng không tồn tại"});
+      }
+
+      bcrypt.compare(req.body.password.toString(), data[0].password, (err, response) => {
         if (err) {
-            console.log(err);
-            return res.status(500).json({ Error: "Có lỗi trong quá trình xử lí" });
+          return res.status(500).json({status_code: 500, type:"error", message:"Có lỗi trong quá trình xử lí"});
         }
 
-        if (data.length === 0) {
-            return res.status(404).json({ Error: "Tài khoản không tồn tại" });
+        if (!response) {
+          return res.status(401).json({status_code: 401, type:"error", message:"Sai mật khẩu"});
         }
 
-        bcrypt.compare(req.body.password.toString(), data[0].password, (err, response) => {
-            if (err) {
-                return res.status(500).json({ Error: "Có lỗi trong quá trình xử lí" });
-            }
+        const payload = { userId: data[0].userId };
 
-            if (!response) {
-                return res.status(401).json({ passwordError: "Sai mật khẩu" });
-            }
-
-            const name = data[0].name;
-            const phoneNumber = data[0].phoneNumber;
-            const userId = data[0].userId;
-            console.log(name);
-            const token = jwt.sign({ name, phoneNumber, userId }, "jwt-secret-key", { expiresIn: '1d' });
-            return res.status(200).json({ userId: data[0].userId, token, message: 'Đăng nhập thành công' });
-        });
+        // Ensure to use the same secret key
+        const token = jwt.sign(payload, "jwt-secret-key", { algorithm: 'HS256', expiresIn: '5m' });
+        return res.status(200).json({ statuts_code: 200, type: "success", message: 'Đăng nhập thành công', data:{userId: data[0].userId, token}});
+      });
     });
-}
+  }
+
   // checkPhoneExist(req, res) {
   //     console.log("Phone Number: ", req.body.phoneNumber);
   //     const userSql = `SELECT COUNT(*) AS count FROM user WHERE phoneNumber = ?`;
@@ -58,7 +58,7 @@ class Authentication {
     const sql = `INSERT INTO user (phoneNumber, password, name, email, sex, address, parent_name, parent_phone, parent_email, mother_name, mother_phone, mother_email) VALUES (?)`;
     bcrypt.hash(req.body.password.toString(), salt, (err, hash) => {
         if (err) {
-            return res.status(500).json({ Error: "Error for hashing password" });
+            return res.status(500).json({status_code: 500, type:"error", message:"Lỗi trong quá trình xử lí"});
         }
         const values = [
             req.body.phoneNumber,
@@ -91,10 +91,10 @@ class Authentication {
 
             if (err) {
                 console.log(err);
-                return res.status(400).json({ Error: "Đăng kí không thành công" });
+                return res.status(400).json({status_code: 400, type:"error", message:"Đăng kí không thành công"});
             } else {
                 const userId = result.insertId;
-                return res.status(201).json({ userId, Status: "Đăng kí thành công" });
+                return res.status(201).json({status_code: 201, type:"success", message:"Đăng kí thành công"});
             }
         })
     })
@@ -106,17 +106,17 @@ class Authentication {
           res.clearCookie('token');
           console.log("Cookie is cleared");
 
-          return res.json({ Status: "Success" });
+          return res.json({status_code: 200, type:"success", message:"Đăng xuất thành công"});
       } catch (error) {
           console.error("Error during logout:", error);
-          return res.json({ Error: "Error Logout" });
+          return res.json({status_code: 500, type:"error", message:"Lỗi server"});
       }
   }
   
-  //Hàm chỉ định verify cho token
-  showVerifyUser(req, res) {
-    return res.json({ Status: "Success", name: req.name, phoneNumber: req.phoneNumber, userId: req.userId });
-}
+//   //Hàm chỉ định verify cho token
+//   showVerifyUser(req, res) {
+//     return res.json({ Status: "Success", name: req.name, phoneNumber: req.phoneNumber, userId: req.userId });
+// }
 
 //Hàm đổi mật khẩu
 ChangePassword(req, res) {
@@ -127,11 +127,11 @@ ChangePassword(req, res) {
   connection.query(checkUserSql, [userId], (err, result) => {
     if (err) {
       console.log(err);
-      return res.status(500).json({ error: 'Lỗi: Không thể thay đổi mật khẩu, vui lòng thử lại sau' });
+      return res.status(500).json({status_code: 500, type:"error", message:"Lỗi không thể thay đổi mật khẩu. Vui lòng thử lại sao"});
     }
 
     if (result.length === 0) {
-      return res.status(404).json({ error: 'Lỗi: Người dùng không tồn tại' });
+      return res.status(404).json({status_code: 404, type:"error", message:"Lỗi người dùng không tồn tại"});
     }
 
     const user = result[0];
@@ -140,18 +140,18 @@ ChangePassword(req, res) {
     bcrypt.compare(oldPassword, user.password, (err, match) => {
       if (err) {
         console.log(err);
-        return res.status(500).json({ error: 'Lỗi [Unfound Password]: Không thể thay đổi mật khẩu, vui lòng thử lại sau' });
+        return res.status(500).json({status_code: 500, type:"error", message:"Lỗi trong quá trình xử lí"});
       }
 
       if (!match) {
-        return res.status(401).json({ error: 'Lỗi: Mật khẩu cũ không đúng' });
+        return res.status(401).json({status_code: 401, type:"error", message:"Mật khẩu cũ không đúng"});
       }
 
       // Mã hóa mật khẩu mới
       bcrypt.hash(newPassword, 10, (err, hash) => {
         if (err) {
           console.log(err);
-          return res.status(500).json({ error: 'Lỗi [Encrypt]: Không thể thay đổi mật khẩu, vui lòng thử lại sau' });
+          return res.status(500).json({status_code: 500, type:"error", message:"Lỗi trong quá trình xử lí"});
         }
 
         // Cập nhật mật khẩu mới trong database
@@ -159,10 +159,10 @@ ChangePassword(req, res) {
         connection.query(updatePasswordSql, [hash, userId], (err, result) => {
           if (err) {
             console.log(err);
-            return res.status(500).json({ error: 'Lỗi [Database]: Không thể thay đổi mật khẩu trong, vui lòng thử lại sau' });
+            return res.status(500).json({status_code: 500, type:"error", message:"Lỗi trong quá trình xử lí [Database]"});
           }
 
-          return res.json({ message: 'Đổi mật khẩu thành công' });
+          return res.json({status_code: 200, type:"success", message:"Đổi mật khẩu thành công"});
         });
       });
     });

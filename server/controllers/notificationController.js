@@ -7,7 +7,7 @@ class Notification {
     connection.query(query, (err, results) => {
       if (err) {
         console.error(err);
-        return res.status(500).json({ message: 'Lỗi server' });
+        return res.status(500).json({status_code: 500, type:"error", message:"Lỗi server"});
       }
 
       const notifications = results.map((notification) => ({
@@ -16,7 +16,7 @@ class Notification {
         dateTime: moment(notification.created_at).toISOString(),
         images: notification.images,
       }));
-      res.json({ notifications });
+      res.status(200).json({status_code: 200, type:"success", message: notifications });
     });
   }
 }
