@@ -98,7 +98,7 @@ class Request{
                   userId: request.userId,
                 }));
           
-                res.statuts(200).json({status_code: 200, type:"success", message: leaveRequests});
+                res.statuts(200).json({status_code: 200, type:"success", message: "Danh sách xin nghỉ phép", data: leaveRequests});
               });
             } catch (err) {
               console.error(err);

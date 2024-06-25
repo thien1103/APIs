@@ -16,7 +16,7 @@ class Notification {
         dateTime: moment(notification.created_at).toISOString(),
         images: notification.images,
       }));
-      res.status(200).json({status_code: 200, type:"success", message: notifications });
+      res.status(200).json({status_code: 200, type:"success", message:"Tất cả thông báo", data: notifications});
     });
   }
 }

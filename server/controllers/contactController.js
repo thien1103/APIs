@@ -17,7 +17,7 @@ class Contact{
         category: contact.category
         }));
 
-        res.status(200).json({status_code: 200, type:"success", message: contacts });
+        res.status(200).json({status_code: 200, type:"success", message: "Thông tin liên lạc", data: contacts });
     });
     }
 }

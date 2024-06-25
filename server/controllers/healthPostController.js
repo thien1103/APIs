@@ -16,7 +16,7 @@ class HealthPost {
         image: post.image,
       }));
 
-      res.status(200).json({status_code: 200, type:"success", message: posts});
+      res.status(200).json({status_code: 200, type:"success", message: "Tất cả bài viết", data: posts});
     });
   }
 
@@ -35,7 +35,7 @@ class HealthPost {
 
       const post = result[0];
       res.status(200).json({
-        status_code: 200, type:"success", message:{ postId: post.postId, title: post.title, content: post.content, image: post.image,}
+        status_code: 200, type:"success", message:"Bài đăng chi tiết", data:{ postId: post.postId, title: post.title, content: post.content, image: post.image,}
       });
     });
   }

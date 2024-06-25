@@ -8,7 +8,7 @@ class PickUp{
         connection.query(query, (err, results) => {
             if (err) {
             console.error(err);
-            return res.status(500).json({ error: 'Lỗi: Không thể lấy danh sách đưa đón' });
+            return res.status(500).json({status_code: 500, type:"error", message:"Lỗi không thể lấy danh sách đưa đón. Vui lòng thử lại sau"});
             }
 
             const pickups = results.map(pickup => ({
@@ -20,7 +20,7 @@ class PickUp{
             note: pickup.note
             }));
 
-            return res.json({ pickups });
+            return res.status(200).json({status_code: 200, type:"success", message:"Thông tin đưa đón", data: pickups});
         });
     }
 
@@ -30,7 +30,7 @@ class PickUp{
 
         // Kiểm tra dữ liệu đầu vào
         if (!userId || !phoneNumber || !relationship || !action) {
-          return res.status(400).json({ error: 'Vui lòng điền đầy đủ thông tin' });
+          return res.status(400).json({status_code: 400, type:"error", message:"Vui lòng điền đầy đủ thông tin"});
         }
     
         const query = 'INSERT INTO pickups (userId, phoneNumber, relationship, idNumber, action, note) VALUES (?, ?, ?, ?, ?, ?)';
@@ -40,10 +40,10 @@ class PickUp{
           (err, result) => {
             if (err) {
               console.error(err);
-              return res.status(500).json({ error: 'Lỗi: Không thể thêm đưa đón, vui lòng thử lại sau' });
+              return res.status(500).json({status_code: 500, type:"error", message:"Lỗi không thể thêm thông tin đưa đón. Vui lòng thử lại sau"});
             }
     
-           return res.json({ message: 'Thêm đưa đón thành công' });
+           return res.status(200).json({status_code: 200, type:"success", message:"Thêm thông tin đưa đón thành công"});
           }
         );
       }

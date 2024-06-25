@@ -39,7 +39,7 @@ class User{
               }
             };
       
-            return res.status(200).json({status_code: 200, type:"success", message: userInfo});
+            return res.status(200).json({status_code: 200, type:"success", message:"Thông tin người dùng", data: userInfo});
           });
       }
 
