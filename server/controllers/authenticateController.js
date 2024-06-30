@@ -34,7 +34,7 @@ class Authentication {
 
         // Ensure to use the same secret key
         const token = jwt.sign(payload, "jwt-secret-key", { algorithm: 'HS256'});
-        return res.status(200).json({ statuts_code: 200, type: "success", message: 'Đăng nhập thành công', data:{userId: data[0].userId, token}});
+        return res.status(200).json({ status_code: 200, type: "success", message: 'Đăng nhập thành công', data:{userId: data[0].userId, token}});
       });
     });
   }
