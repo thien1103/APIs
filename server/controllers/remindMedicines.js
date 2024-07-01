@@ -106,6 +106,7 @@ class remindMedicines {
                   r.startDate, 
                   r.endDate, 
                   r.createdDate,
+                  r.status,
                   dr.date, 
                   dr.morningSession, 
                   dr.afternoonSession
@@ -130,10 +131,20 @@ class remindMedicines {
             startDate,
             endDate,
             createdDate,
+            status,
             date,
             morningSession,
             afternoonSession,
           } = row;
+
+          //Định dạng từ boolean ra text cho status
+          let statusText;
+          if (status === 1) {
+            statusText = "Xác nhận";
+          } else {
+            statusText = "Chưa xác nhận";
+          }
+
           const existingRemind = acc.find((r) => r.remindId === remindId);
 
           if (existingRemind) {
@@ -161,6 +172,7 @@ class remindMedicines {
               startDate: startDate.toISOString(),
               endDate: endDate.toISOString(),
               createdDate: createdDate.toISOString(),
+              status: statusText,
             });
           }
 
@@ -195,6 +207,7 @@ class remindMedicines {
                   r.startDate, 
                   r.endDate, 
                   r.createdDate,
+                  r.status,
                   dr.date, 
                   dr.morningSession, 
                   dr.afternoonSession
@@ -228,10 +241,21 @@ class remindMedicines {
           startDate,
           endDate,
           createdDate,
+          status,
           date,
           morningSession,
           afternoonSession,
         } = row;
+
+        //Định dạng từ boolean ra text cho status
+        let statusText;
+        if (status === 1) {
+          statusText = "Xác nhận";
+        } else {
+          statusText = "Chưa xác nhận";
+        }
+
+
         const existingRemind = acc.find((r) => r.remindId === remindId);
 
         if (existingRemind) {
@@ -259,6 +283,7 @@ class remindMedicines {
             startDate: startDate.toISOString(),
             endDate: endDate.toISOString(),
             createdDate: createdDate.toISOString(),
+            status: statusText,
           });
         }
 
