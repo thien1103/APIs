@@ -7,6 +7,7 @@ const pickUpRouter = require('./pickUpRouter');
 const requestRouter = require('./requestRouter')
 const messageRouter = require("./messageRouter");
 const remindMedicinesRouter = require("./remindMedicinesRouter")
+const feedbackRouter = require("./feedbackRouter");
 
 
 function route(app){
@@ -19,5 +20,6 @@ function route(app){
     app.use('/api',requestRouter)
     app.use("/api", messageRouter);
     app.use("/api", remindMedicinesRouter);
+    app.use("/api", feedbackRouter);
 }
 module.exports = route;
