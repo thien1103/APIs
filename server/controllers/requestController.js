@@ -4,55 +4,62 @@ const moment = require('moment')
 class Request{
   //Hàm tạo yêu cầu xin nghỉ
     AddLeaveRequest(req, res) {
-        const { content, dateRangeList, startDate, endDate, createdDate } = req.body;
+      const { content, dateRangeList, startDate, endDate, createdDate, status } = req.body;
 
-        //Exception cho data không được điền đầy đủ
-        if ( !content || !dateRangeList || !startDate || !endDate || !createdDate) {
-          return res.status(400).json({status_code: 400, type: "error", message: "Vui lòng nhập đầy đủ thông tin"});
+      // Exception cho data không hợp lệ
+      if (!content || !dateRangeList || !startDate || !endDate || !createdDate || status === undefined) {
+        return res.status(400).json({ status_code: 400, type: "error", message: "Vui lòng nhập đầy đủ thông tin" });
+      }
+
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const created = new Date(createdDate);
+
+      // If để phân loại status trả về
+      let statusValue;
+      if (status === "Chưa xác nhận") {
+        statusValue = 0;
+      } else if (status === "Xác nhận") {
+        statusValue = 1;
+      } else {
+        return res.status(400).json({ status_code: 400, type: "error", message: "Giá trị status trả về không hợp lệ" });
+      }
+
+      // Query insert vào table requests
+      const query = 'INSERT INTO requests (content, startDate, endDate, createdDate, status) VALUES (?, ?, ?, ?, ?)';
+      connection.query(query, [content, start, end, created, statusValue], (err, result) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ status_code: 500, type: "error", message: "Lỗi server" });
         }
 
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        const created = new Date(createdDate);
-        // const start = new Date(startDate).toISOString();
-        // const end = new Date(endDate).toISOString();
-        // const created = new Date(createdDate).toISOString();
+        // Query insert vào table date_ranges
+        const insertDateRangeQuery = 'INSERT INTO date_ranges (requestId, date, morningSession, afternoonSession) VALUES (?, ?, ?, ?)';
+        const requestId = result.insertId;
 
-        // Query insert vào table requests
-        const query = 'INSERT INTO requests (content, startDate, endDate, createdDate) VALUES (?, ?, ?, ?)';
-        connection.query(query, [content, start, end, created], (err, result) => {
-          if (err) {
-            console.error(err);
-            return res.status(500).json({status_code: 500, type: "error", message: "Lỗi server"});
-          }
-
-          //Query insert vào table date_ranges
-          const insertDateRangeQuery = 'INSERT INTO date_ranges (requestId, date, morningSession, afternoonSession) VALUES (?, ?, ?, ?)';
-          const requestId = result.insertId;
-
-          const promises = dateRangeList.map(({ date, session }) => {
-            const { morning, afternoon } = session;
-            return new Promise((resolve, reject) => {
-              connection.query(insertDateRangeQuery, [requestId, date, morning, afternoon], (err, result) => {
-                if (err) {
-                  reject(err);
-                } else {
-                  resolve();
-                }
-              });
+        const promises = dateRangeList.map(({ date, session }) => {
+          const { morning, afternoon } = session;
+          return new Promise((resolve, reject) => {
+            connection.query(insertDateRangeQuery, [requestId, date, morning, afternoon], (err, result) => {
+              if (err) {
+                reject(err);
+              } else {
+                resolve();
+              }
             });
           });
-
-          Promise.all(promises)
-            .then(() => {
-              return res.status(200).json({status_code: 200, type: "success", message: "Yêu cầu xin nghỉ đã được gửi đi"});
-            })
-            .catch((err) => {
-              console.error(err);
-              return res.status(500).json({status_code: 500, type: "error", message: "Lỗi server"});
-            });
         });
-      }
+
+        Promise.all(promises)
+          .then(() => {
+            return res.status(200).json({ status_code: 200, type: "success", message: "Yêu cầu xin nghỉ đã được gửi đi" });
+          })
+          .catch((err) => {
+            console.error(err);
+            return res.status(500).json({ status_code: 500, type: "error", message: "Lỗi server" });
+          });
+      });
+    }
 
     //Hàm Update yêu cầu nghỉ phép
     UpdateLeaveRequest(req, res) {
@@ -69,12 +76,12 @@ class Request{
             (err, result) => {
               if (err) {
                 console.error(err);
-                return res.status(500).json({status_code: 500, type: "error", message: "Server error"});
+                return res.status(500).json({status_code: 500, type: "error", message: "Lỗi Server"});
 
               }
 
               if (result.affectedRows === 0) {
-                return res.status(404).json({status_code: 404, type: "error", message: "Leave request not found"});
+                return res.status(404).json({status_code: 404, type: "error", message: "Yêu cầu xin nghỉ phép không tồn tại"});
               }
 
               // Hàm update trong table date_ranges
@@ -96,44 +103,46 @@ class Request{
 
               Promise.all(updatePromises)
                 .then(() => {
-                  res.status(200).json({status_code: 200, type: "success", message: "Leave request updated successfully"});
+                  res.status(200).json({status_code: 200, type: "success", message: "Yêu cầu của bạn đã được cập nhật"});
                 })
                 .catch((err) => {
                   console.error(err);
-                  res.status(500).json({status_code: 500, type: "error", message: "Server error"});
+                  res.status(500).json({status_code: 500, type: "error", message: "Lỗi Server"});
                 });
             }
           );
         } catch (err) {
           console.error(err);
-          res.status(500).json({status_code: 500, type: "error", message: "Server error"});
+          res.status(500).json({status_code: 500, type: "error", message: "Lỗi Server"});
         }
       }
 
         //Hàm xóa yêu cầu nghỉ phép
         DeleteLeaveRequest(req, res) {
-            const { requestId } = req.params;
-          
-            try {
-              connection.query('DELETE FROM requests WHERE requestId = ?', [requestId], 
-              (err, result) => {
-                  if (err) {
-                    console.error(err);
-                    return res.status(500).json({status_code: 500, type:"error", message:"Lỗi server"});
+          const { requestId } = req.params;
+
+          try {
+            connection.query('START TRANSACTION', (err, result) => {
+              connection.query('DELETE FROM date_ranges WHERE requestId = ?', [requestId], (err, dateRangesResult) => {
+                connection.query('DELETE FROM requests WHERE requestId = ?', [requestId], (err, requestsResult) => {
+                  if (dateRangesResult.affectedRows === 0 && requestsResult.affectedRows === 0) {
+                    return res.status(404).json({ status_code: 404, type: "error", message: "Không tìm thấy yêu cầu xin nghỉ phép" });
                   }
-          
-                  if (result.affectedRows === 0) {
-                    return res.status(404).json({status_code: 404, type:"error", message:"Không tìm thấy yêu cầu xin nghỉ phép"});
-                  }
-          
-                  res.status(200).json({status_code: 200, type:"success", message:"Yêu cầu xin nghỉ đã được xóa"});
-                }
-              );
-            } catch (err) {
-              console.error(err);
-              res.status(500).json({status_code: 500, type:"error", message:"Lỗi server"});
-            }
+                  connection.query('COMMIT', (err, result) => {
+                    if (err) {
+                      console.error(err);
+                      return res.status(500).json({ status_code: 500, type: "error", message: "Lỗi server" });
+                    }
+                    res.status(200).json({ status_code: 200, type: "success", message: "Yêu cầu xin nghỉ đã được xóa" });
+                  });
+                });
+              });
+            });
+          } catch (err) {
+            console.error(err);
+            res.status(500).json({ status_code: 500, type: "error", message: "Lỗi server" });
           }
+        }
 
           //Hàm lấy danh sách tất cả leave-request 
           GetAllLeaveRequests(req, res) {
