@@ -4,9 +4,9 @@ const verifyToken = require("../middleware/verifyToken");
 const message = require("../controllers/messageController");
 
 router.get("/messages/all", verifyToken, message.GetAllMessage);
-router.get("/messages/:token", verifyToken, message.GetDetailedMessage);
-router.post("/messages/send", verifyToken, message.SendMessage);
-router.put("/messages/update/:token", verifyToken, message.UpdateMessage);
-router.delete("/messages/delete/:token", verifyToken, message.DeleteMessage);
+router.get("/messages/:messageId", verifyToken, message.GetDetailedMessage);
+router.post("/messages/add", verifyToken, message.SendMessage);
+router.put("/messages/update/:messageId", verifyToken, message.UpdateMessage);
+router.delete("/messages/delete/:messageId", verifyToken, message.DeleteMessage);
 
 module.exports = router;

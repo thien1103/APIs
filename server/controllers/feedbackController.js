@@ -3,7 +3,7 @@ const { connection } = require("../configuration/dbConfig");
 class Feedback {
   // Hàm tạo feedback
   CreateFeedBack(req, res) {
-    const { title, content, createdDay } = req.body;
+    const { title, content } = req.body;
 
     // Exception cho data không hợp lệ
     if (!content || !title) {
@@ -38,7 +38,7 @@ class Feedback {
           data: {
             title: title,
             content: content,
-            createdDay: createdDate,
+            createdDate: createdDate,
           },
         });
       }

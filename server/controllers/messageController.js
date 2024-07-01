@@ -1,5 +1,4 @@
 const { connection } = require("../configuration/dbConfig");
-const crypto = require("crypto");
 
 class Message {
   // Hàm tạo và gửi tin nhắn
@@ -16,7 +15,6 @@ class Message {
     }
 
     const created = new Date();
-    const token = crypto.randomBytes(16).toString("hex"); // Tạo token ngẫu nhiên
 
     // If để phân loại status trả về
     let statusValue;
@@ -34,10 +32,10 @@ class Message {
 
     // Query insert vào table requests
     const query =
-      "INSERT INTO messages (content, createdDate, status, token) VALUES (?, ?, ?, ?)";
+      "INSERT INTO messages (content, createdDate, status) VALUES (?, ?, ?)";
     connection.query(
       query,
-      [content, created, statusValue, token],
+      [content, created, statusValue],
       (err, result) => {
         if (err) {
           console.error(err);
@@ -53,10 +51,9 @@ class Message {
           message: "Tin nhắn đã được gửi thành công",
           data: {
             content: content,
-            createdDay: created,
+            createdDate: created,
             status: status,
           },
-          token: token,
         });
       }
     );
@@ -86,7 +83,7 @@ class Message {
 
       // Tạo một mảng mới để lưu trữ data
       const messages = results.map((item) => {
-        const { messageId, content, createdDate, status, token } = item;
+        const { messageId, content, createdDate, status } = item;
         let statusText;
         if (status === 1) {
           statusText = "Xác nhận";
@@ -99,7 +96,6 @@ class Message {
           content,
           createdDate,
           status: statusText,
-          token,
         };
       });
 
@@ -113,11 +109,11 @@ class Message {
 
   //Hàm lấy tin nhắn cụ thể
   GetDetailedMessage(req, res) {
-    const { token } = req.params;
+    const { messageId } = req.params;
 
     // Query lấy tin nhắn bằng token
-    const query = "SELECT * FROM messages WHERE token = ?";
-    connection.query(query, [token], (err, result) => {
+    const query = "SELECT * FROM messages WHERE messageId = ?";
+    connection.query(query, [messageId], (err, result) => {
       if (err) {
         console.error(err);
         return res.status(500).json({
@@ -158,7 +154,7 @@ class Message {
 
   // Hàm update tin nhắn
   UpdateMessage(req, res) {
-    const {token} = req.params;
+    const { messageId } = req.params;
     const {  content, status } = req.body;
 
     // Exception cho data không hợp lệ
@@ -186,10 +182,10 @@ class Message {
 
     // Query update vào table messages
     const query =
-      "UPDATE messages SET content = ?, status = ? WHERE token = ?";
+      "UPDATE messages SET content = ?, status = ? WHERE messageId = ?";
     connection.query(
       query,
-      [content, statusValue, token],
+      [content, statusValue, messageId],
       (err, result) => {
         if (err) {
           console.error(err);
@@ -213,6 +209,7 @@ class Message {
           type: "success",
           message: "Tin nhắn đã được cập nhật thành công",
           data: {
+            messageId: messageId,
             content: content,
             status: status,
           },
@@ -223,10 +220,10 @@ class Message {
 
   //Hàm xóa tin nhắn
   DeleteMessage(req, res) {
-    const { token } = req.params;
+    const { messageId } = req.params;
 
-    const query = "DELETE FROM messages WHERE token = ?";
-    connection.query(query, [token], (err, result) => {
+    const query = "DELETE FROM messages WHERE messageId = ?";
+    connection.query(query, [messageId], (err, result) => {
       if (err) {
         console.error(err);
         return res
