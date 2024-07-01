@@ -4,16 +4,16 @@ const moment = require('moment')
 class Request{
   //Hàm tạo yêu cầu xin nghỉ
     AddLeaveRequest(req, res) {
-      const { content, dateRangeList, startDate, endDate, createdDate, status } = req.body;
+      const { content, dateRangeList, startDate, endDate, status } = req.body;
 
       // Exception cho data không hợp lệ
-      if (!content || !dateRangeList || !startDate || !endDate || !createdDate || status === undefined) {
+      if (!content || !dateRangeList || !startDate || !endDate || status === undefined) {
         return res.status(400).json({ status_code: 400, type: "error", message: "Vui lòng nhập đầy đủ thông tin" });
       }
 
       const start = new Date(startDate);
       const end = new Date(endDate);
-      const created = new Date(createdDate);
+      const created = new Date();
 
       // If để phân loại status trả về
       let statusValue;
@@ -33,10 +33,9 @@ class Request{
           return res.status(500).json({ status_code: 500, type: "error", message: "Lỗi server" });
         }
 
-        // Query insert vào table date_ranges
-        const insertDateRangeQuery = 'INSERT INTO date_ranges (requestId, date, morningSession, afternoonSession) VALUES (?, ?, ?, ?)';
+        // Query insert vào table date_ranges_request
+        const insertDateRangeQuery = 'INSERT INTO date_ranges_request (requestId, date, morningSession, afternoonSession) VALUES (?, ?, ?, ?)';
         const requestId = result.insertId;
-
         const promises = dateRangeList.map(({ date, session }) => {
           const { morning, afternoon } = session;
           return new Promise((resolve, reject) => {
@@ -64,15 +63,14 @@ class Request{
     //Hàm Update yêu cầu nghỉ phép
     UpdateLeaveRequest(req, res) {
         const { requestId } = req.params;
-        const { content, dateRangeList, startDate, endDate, createdDate } = req.body;
+        const { content, dateRangeList, startDate, endDate} = req.body;
         const formattedStartDate = moment(startDate).format('YYYY-MM-DD HH:mm:ss');
         const formattedEndDate = moment(endDate).format('YYYY-MM-DD HH:mm:ss');
-        const formattedCreatedDate = moment(createdDate).format('YYYY-MM-DD HH:mm:ss');
         try {
           //Hàm update trong requests
           connection.query(
-            'UPDATE requests SET content = ?, startDate = ?, endDate = ?, createdDate = ? WHERE requestId = ?',
-            [content, formattedStartDate, formattedEndDate, formattedCreatedDate, requestId],
+            'UPDATE requests SET content = ?, startDate = ?, endDate = ? WHERE requestId = ?',
+            [content, formattedStartDate, formattedEndDate, requestId],
             (err, result) => {
               if (err) {
                 console.error(err);
@@ -84,11 +82,11 @@ class Request{
                 return res.status(404).json({status_code: 404, type: "error", message: "Yêu cầu xin nghỉ phép không tồn tại"});
               }
 
-              // Hàm update trong table date_ranges
+              // Hàm update trong table date_ranges_request
               const updatePromises = dateRangeList.map(({ date, session }) => {
                 return new Promise((resolve, reject) => {
                   connection.query(
-                    'UPDATE date_ranges SET morningSession = ?, afternoonSession = ? WHERE requestId = ? AND date = ?',
+                    'UPDATE date_ranges_request SET morningSession = ?, afternoonSession = ? WHERE requestId = ? AND date = ?',
                     [session.morning, session.afternoon, requestId, date],
                     (err, result) => {
                       if (err) {
@@ -123,7 +121,7 @@ class Request{
 
           try {
             connection.query('START TRANSACTION', (err, result) => {
-              connection.query('DELETE FROM date_ranges WHERE requestId = ?', [requestId], (err, dateRangesResult) => {
+              connection.query('DELETE FROM date_ranges_request WHERE requestId = ?', [requestId], (err, dateRangesResult) => {
                 connection.query('DELETE FROM requests WHERE requestId = ?', [requestId], (err, requestsResult) => {
                   if (dateRangesResult.affectedRows === 0 && requestsResult.affectedRows === 0) {
                     return res.status(404).json({ status_code: 404, type: "error", message: "Không tìm thấy yêu cầu xin nghỉ phép" });
@@ -158,7 +156,7 @@ class Request{
                   dr.morningSession, 
                   dr.afternoonSession
                 FROM requests r
-                LEFT JOIN date_ranges dr ON r.requestId = dr.requestId
+                LEFT JOIN date_ranges_request dr ON r.requestId = dr.requestId
               `;
 
               connection.query(query, (err, results) => {

@@ -5,6 +5,9 @@ const contactRouter = require('./contactRouter');
 const notificationRouter = require('./notificationRouter');
 const pickUpRouter = require('./pickUpRouter');
 const requestRouter = require('./requestRouter')
+const messageRouter = require("./messageRouter");
+const remindMedicinesRouter = require("./remindMedicinesRouter")
+
 
 function route(app){
     app.use('/api',authenRouter);
@@ -14,5 +17,7 @@ function route(app){
     app.use('/api',notificationRouter);
     app.use('/api',pickUpRouter);
     app.use('/api',requestRouter)
+    app.use("/api", messageRouter);
+    app.use("/api", remindMedicinesRouter);
 }
 module.exports = route;
