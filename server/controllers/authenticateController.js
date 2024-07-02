@@ -56,7 +56,7 @@ class Authentication {
 
   //Hàm đăng kí Sign Up
   SignUp(req, res) {
-    const sql = `INSERT INTO user (phoneNumber, password, name, email, sex, address, parent_name, parent_phone, parent_email, mother_name, mother_phone, mother_email) VALUES (?)`;
+    const sql = `INSERT INTO user (phoneNumber, password, name, classStudy, email, sex, address, parent_name, parent_phone, parent_email, mother_name, mother_phone, mother_email) VALUES (?)`;
     bcrypt.hash(req.body.password.toString(), salt, (err, hash) => {
         if (err) {
             return res.status(500).json({status_code: 500, type:"error", message:"Lỗi trong quá trình xử lí"});
@@ -65,6 +65,7 @@ class Authentication {
             req.body.phoneNumber,
             hash,
             req.body.name,
+            req.body.classStudy,
             req.body.email,
             req.body.sex,
             req.body.address,
@@ -80,6 +81,7 @@ class Authentication {
             console.log('Password: ', req.body.password);
             console.log("Hashed Password: ", hash);
             console.log("Name: ", req.body.name);
+            console.log("Class Study: ", req.body.classStudy);
             console.log("Email: ", req.body.email);
             console.log("Sex: ", req.body.sex);
             console.log("Address: ", req.body.address);
