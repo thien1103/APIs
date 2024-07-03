@@ -10,7 +10,7 @@ class User {
 
     // Truy vấn thông tin người dùng từ database
     const getUserSql =
-      "SELECT phoneNumber, email, name, classStudy, sex, address, parent_name, parent_phone, parent_email, mother_name, mother_phone, mother_email FROM user WHERE userId = ?";
+      "SELECT phoneNumber, email, name, classStudy, sex, address, avatar, parent_name, parent_phone, parent_email, mother_name, mother_phone, mother_email FROM user WHERE userId = ?";
     connection.query(getUserSql, [userId], (err, result) => {
       if (err) {
         console.log(err);
@@ -37,6 +37,7 @@ class User {
         classStudy: user.classStudy,
         sex: user.sex,
         address: user.address,
+        avatar: user.avatar,
         mother: {
           name: user.mother_name,
           phoneNumber: user.mother_phone,
@@ -87,6 +88,7 @@ class User {
           classStudy,
           sex,
           address,
+          avatar,
           mother_name,
           mother_phone,
           mother_email,
@@ -101,6 +103,7 @@ class User {
           classStudy: classStudy,
           sex: sex,
           address: address,
+          avatar: avatar,
           mother: {
             name: mother_name,
             phoneNumber: mother_phone,
