@@ -56,26 +56,28 @@ class Authentication {
 
   //Hàm đăng kí Sign Up
   SignUp(req, res) {
-    const sql = `INSERT INTO user (phoneNumber, password, name, classStudy, email, sex, address, parent_name, parent_phone, parent_email, mother_name, mother_phone, mother_email) VALUES (?)`;
+    const sql = `INSERT INTO user (phoneNumber, password, name, classStudy, email, sex, address, avatar, parent_name, parent_phone, parent_email, mother_name, mother_phone, mother_email) VALUES (?)`;
     bcrypt.hash(req.body.password.toString(), salt, (err, hash) => {
         if (err) {
             return res.status(500).json({status_code: 500, type:"error", message:"Lỗi trong quá trình xử lí"});
         }
         const values = [
-            req.body.phoneNumber,
-            hash,
-            req.body.name,
-            req.body.classStudy,
-            req.body.email,
-            req.body.sex,
-            req.body.address,
-            req.body.parent_name,
-            req.body.parent_phone,
-            req.body.parent_email,
-            req.body.mother_name,
-            req.body.mother_phone,
-            req.body.mother_email
-        ]
+          req.body.phoneNumber,
+          hash,
+          req.body.name,
+          req.body.classStudy,
+          req.body.email,
+          req.body.sex,
+          req.body.address,
+          (avatar =
+            "https://www.google.com/url?sa=i&url=https%3A%2F%2Fsbcf.fr%2Fen%2Fdefault-avatar%2F&psig=AOvVaw10pu7tHj7E5cko5KYzkfKY&ust=1720055944165000&source=images&cd=vfe&opi=89978449&ved=0CBEQjRxqFwoTCPjU-u7ZiYcDFQAAAAAdAAAAABAK"),
+          req.body.parent_name,
+          req.body.parent_phone,
+          req.body.parent_email,
+          req.body.mother_name,
+          req.body.mother_phone,
+          req.body.mother_email,
+        ];
         connection.query(sql, [values], (err, result) => {
             console.log("Phone Number: ", req.body.phoneNumber);
             console.log('Password: ', req.body.password);

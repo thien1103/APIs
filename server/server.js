@@ -6,6 +6,8 @@ const cookieParser = require('cookie-parser');
 const dotenv = require("dotenv");
 const route = require('./routes/index')
 const { connection } = require('./configuration/dbConfig');
+const path = require("path");
+
 
 
 dotenv.config();
@@ -27,6 +29,21 @@ app.use(cors({
     methods: ["GET", "POST", "DELETE", "PUT", "PATCH", "HEAD"],
     credentials: true,
 }));
+
+
+// Lấy dữ liệu từ mục public để trả lên server (dùng cho changeAvatar)
+app.use('/public', express.static(path.join(__dirname, 'public')));
+
+//Set up băng thông payload
+app.use(bodyParser.json({ limit: "50mb", extended: true }));
+app.use(
+  bodyParser.urlencoded({
+    limit: "50mb",
+    extended: true,
+    parameterLimit: 50000000,
+  })
+);
+app.use(bodyParser.text({ limit: "50mb" }));
 
 app.use(cookieParser());
 app.use(express.json())
