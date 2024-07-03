@@ -31,8 +31,8 @@ app.use(cors({
 }));
 
 
-// Lấy dữ liệu từ mục public để trả lên server (dùng cho changeAvatar)
-app.use('/public', express.static(path.join(__dirname, 'public')));
+// // Lấy dữ liệu từ mục public để trả lên server (dùng cho changeAvatar)
+// app.use('/public', express.static(path.join(__dirname, 'public')));
 
 //Set up băng thông payload
 app.use(bodyParser.json({ limit: "50mb", extended: true }));

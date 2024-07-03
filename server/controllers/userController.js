@@ -200,16 +200,16 @@ class User {
       const imageData = Buffer.from(avatar, "base64");
 
       // Tạo filename (unique) cho avatar
-      const filename = `${Date.now()}-${userId}.jpg`;
+      const filename = `user-${userId}-avatar.jpg`;
       const filePath = path.join("public", "image", filename);
-      const publicPath = `/public/image/${filename}`;
+      // const publicPath = `/public/image/${filename}`;
 
       //Lưu ảnh với filePath vào file system
       fs.writeFileSync(filePath, imageData);
 
       // Query update lại trường avatar trong database sử dụng biến publicPath
       const updateAvatarSql = "UPDATE user SET avatar = ? WHERE userId = ?";
-      connection.query(updateAvatarSql, [publicPath, userId], (err, result) => {
+      connection.query(updateAvatarSql, [filename, userId], (err, result) => {
         if (err) {
           console.log(err);
           return res.status(500).json({
@@ -231,7 +231,7 @@ class User {
           status_code: 200,
           type: "success",
           message: "Ảnh đại diện đã được cập nhật thành công",
-          avatar: publicPath,
+          avatar: filename,
         });
       });
     } catch (error) {
@@ -242,6 +242,29 @@ class User {
         message: "Lỗi server",
       });
     }
+  }
+
+  //Hàm GetUserAvatar để gửi lên client
+  GetUserAvatar(req, res) {
+    const { filename } = req.params;
+    const imagePath = path.resolve(
+      __dirname,
+      "..",
+      "public",
+      "image",
+      filename
+    );
+
+    res.sendFile(imagePath, (err) => {
+      if (err) {
+        console.error(err);
+        return res.status(404).json({
+          status_code: 404,
+          type: "error",
+          message: "Ảnh không tồn tại",
+        });
+      }
+    });
   }
 }
 
