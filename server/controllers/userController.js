@@ -1,6 +1,7 @@
 const { connection } = require("../configuration/dbConfig");
 const fs = require("fs");
 const path = require("path");
+const bcrypt = require("bcrypt");
 
 
 class User {
@@ -20,6 +21,7 @@ class User {
       }
 
       if (result.length === 0) {
+        console.log(err);
         return res.status(404).json({
           status_code: 404,
           type: "error",
@@ -167,6 +169,7 @@ class User {
       }
 
       if (result.affectedRows === 0) {
+        console.log(err);
         return res.status(404).json({
           status_code: 404,
           type: "error",
@@ -188,6 +191,7 @@ class User {
     const { avatar } = req.body;
 
     if (!avatar) {
+      console.log(err);
       return res.status(400).json({
         status_code: 400,
         type: "error",
@@ -266,6 +270,173 @@ class User {
       }
     });
   }
+
+  //Hàm đổi mật khẩu
+  ChangePassword(req, res) {
+    const { userId } = req.params;
+    const { oldPassword, newPassword } = req.body;
+
+    // Kiểm tra xem userId có tồn tại trong database không
+    const checkUserSql = "SELECT * FROM user WHERE userId = ?";
+    connection.query(checkUserSql, [userId], (err, result) => {
+      if (err) {
+        console.log(err);
+        return res
+          .status(500)
+          .json({
+            status_code: 500,
+            type: "error",
+            message: "Lỗi không thể thay đổi mật khẩu. Vui lòng thử lại sao",
+          });
+      }
+
+      if (result.length === 0) {
+        return res
+          .status(404)
+          .json({
+            status_code: 404,
+            type: "error",
+            message: "Lỗi người dùng không tồn tại",
+          });
+      }
+
+      const user = result[0];
+
+      // Kiểm tra mật khẩu cũ
+      bcrypt.compare(oldPassword, user.password, (err, match) => {
+        if (err) {
+          console.log(err);
+          return res
+            .status(500)
+            .json({
+              status_code: 500,
+              type: "error",
+              message: "Lỗi trong quá trình xử lí",
+            });
+        }
+
+        if (!match) {
+          return res
+            .status(400)
+            .json({
+              status_code: 400,
+              type: "error",
+              message: "Mật khẩu cũ không đúng",
+            });
+        }
+
+        // Mã hóa mật khẩu mới
+        bcrypt.hash(newPassword, 10, (err, hash) => {
+          if (err) {
+            console.log(err);
+            return res
+              .status(500)
+              .json({
+                status_code: 500,
+                type: "error",
+                message: "Lỗi trong quá trình xử lí",
+              });
+          }
+
+          // Cập nhật mật khẩu mới trong database
+          const updatePasswordSql =
+            "UPDATE user SET password = ? WHERE userId = ?";
+          connection.query(updatePasswordSql, [hash, userId], (err, result) => {
+            if (err) {
+              console.log(err);
+              return res
+                .status(500)
+                .json({
+                  status_code: 500,
+                  type: "error",
+                  message: "Lỗi trong quá trình xử lí [Database]",
+                });
+            }
+
+            return res.json({
+              status_code: 200,
+              type: "success",
+              message: "Đổi mật khẩu thành công",
+            });
+          });
+        });
+      });
+    });
+  }
+
 }
 
 module.exports = new User();
+
+
+// NỀU LỠ QUÊN MẬT KHẨU THÌ THAY BẰNG HÀM NÀY ĐỂ ĐỔI LẠI MẬT KHẨU
+
+// //Hàm đổi mật khẩu không hash
+//   ChangePassword(req, res) {
+//     const { userId } = req.params;
+//     const { oldPassword, newPassword } = req.body;
+
+//     // Kiểm tra xem userId có tồn tại trong database không
+//     const checkUserSql = "SELECT * FROM user WHERE userId = ?";
+//     connection.query(checkUserSql, [userId], (err, result) => {
+//       if (err) {
+//         console.log(err);
+//         return res
+//           .status(500)
+//           .json({
+//             status_code: 500,
+//             type: "error",
+//             message: "Lỗi không thể thay đổi mật khẩu. Vui lòng thử lại sao",
+//           });
+//       }
+
+//       if (result.length === 0) {
+//         return res
+//           .status(404)
+//           .json({
+//             status_code: 404,
+//             type: "error",
+//             message: "Lỗi người dùng không tồn tại",
+//           });
+//       }
+
+//       const user = result[0];
+
+//         // Mã hóa mật khẩu mới
+//         bcrypt.hash(newPassword, 10, (err, hash) => {
+//           if (err) {
+//             console.log(err);
+//             return res
+//               .status(500)
+//               .json({
+//                 status_code: 500,
+//                 type: "error",
+//                 message: "Lỗi trong quá trình xử lí",
+//               });
+//           }
+
+//           // Cập nhật mật khẩu mới trong database
+//           const updatePasswordSql =
+//             "UPDATE user SET password = ? WHERE userId = ?";
+//           connection.query(updatePasswordSql, [hash, userId], (err, result) => {
+//             if (err) {
+//               console.log(err);
+//               return res
+//                 .status(500)
+//                 .json({
+//                   status_code: 500,
+//                   type: "error",
+//                   message: "Lỗi trong quá trình xử lí [Database]",
+//                 });
+//             }
+
+//             return res.json({
+//               status_code: 200,
+//               type: "success",
+//               message: "Đổi mật khẩu thành công",
+//             });
+//           });
+//         });
+//       });
+//     };
+//   }

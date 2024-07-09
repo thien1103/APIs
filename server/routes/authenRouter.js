@@ -7,6 +7,7 @@ router.post('/signup', Authentication.SignUp);
 router.post('/signin', Authentication.SignIn);
 router.post('/signout',verifyToken, Authentication.logoutExecute);
 // router.get('/', verifyToken, Authentication.showVerifyUser);
-router.post('/change-password',verifyToken, Authentication.ChangePassword);
+router.post('/changePassword',verifyToken, Authentication.ChangePassword);
+
 
 module.exports = router;
