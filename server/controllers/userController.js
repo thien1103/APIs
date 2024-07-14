@@ -127,7 +127,7 @@ class User {
     });
   }
 
-  //Controller cho API cập nhật thông tin người dùng
+  // Controller for updating user information
   UpdateUserInfo(req, res) {
     const userId = req.params.userId;
     const {
@@ -141,31 +141,55 @@ class User {
       father,
     } = req.body;
 
-    // function/querry Cập nhật thông tin người dùng
-    const updateUserSql = `
-          UPDATE user SET phoneNumber = ?, email = ?, name = ?, classStudy = ?, sex = ?, address = ?, mother_name = ?, mother_phone = ?, mother_email = ?, parent_name = ?, parent_phone = ?, parent_email = ? WHERE userId = ? `;
-    const updateParams = [
-      phoneNumber,
-      email,
-      name,
-      classStudy,
-      sex,
-      address,
-      mother.name,
-      mother.phoneNumber,
-      mother.email,
-      father.name,
-      father.phoneNumber,
-      father.email,
-      userId,
-    ];
+    // Build the SQL query dynamically based on the fields provided in the request body
+    let updateUserSql = "UPDATE user SET ";
+    const updateParams = [];
+
+    // Add the fields to be updated and their corresponding values to the query
+    if (phoneNumber !== undefined) {
+      updateUserSql += "phoneNumber = ?, ";
+      updateParams.push(phoneNumber);
+    }
+    if (email !== undefined) {
+      updateUserSql += "email = ?, ";
+      updateParams.push(email);
+    }
+    if (name !== undefined) {
+      updateUserSql += "name = ?, ";
+      updateParams.push(name);
+    }
+    if (classStudy !== undefined) {
+      updateUserSql += "classStudy = ?, ";
+      updateParams.push(classStudy);
+    }
+    if (sex !== undefined) {
+      updateUserSql += "sex = ?, ";
+      updateParams.push(sex);
+    }
+    if (address !== undefined) {
+      updateUserSql += "address = ?, ";
+      updateParams.push(address);
+    }
+    if (mother !== undefined) {
+      updateUserSql += "mother_name = ?, mother_phone = ?, mother_email = ?, ";
+      updateParams.push(mother.name, mother.phoneNumber, mother.email);
+    }
+    if (father !== undefined) {
+      updateUserSql += "parent_name = ?, parent_phone = ?, parent_email = ?, ";
+      updateParams.push(father.name, father.phoneNumber, father.email);
+    }
+
+    // Remove the last comma from the SQL query
+    updateUserSql = updateUserSql.slice(0, -2);
+    updateUserSql += " WHERE userId = ?";
+    updateParams.push(userId);
 
     connection.query(updateUserSql, updateParams, (err, result) => {
       if (err) {
         console.log(err);
         return res
           .status(500)
-          .json({ status_code: 500, type: "error", message: "Lỗi server" });
+          .json({ status_code: 500, type: "error", message: "Server error" });
       }
 
       if (result.affectedRows === 0) {
@@ -180,11 +204,10 @@ class User {
       return res.status(200).json({
         status_code: 200,
         type: "success",
-        message: "Thông tin người dùng đã được cập nhật thành công",
+        message: "Cập nhật thông tin người dùng thành công",
       });
     });
   }
-
   //Hàm xử lí thay đổi avatar cá nhân
   ChangeAvatar(req, res) {
     const userId = req.params.userId;
@@ -270,8 +293,6 @@ class User {
       }
     });
   }
-
-
 }
 
 module.exports = new User();
