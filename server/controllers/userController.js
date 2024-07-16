@@ -211,10 +211,10 @@ class User {
   //Hàm xử lí thay đổi avatar cá nhân
   ChangeAvatar(req, res) {
     const userId = req.params.userId;
+    console.log(req.body);
     const { avatar } = req.body;
 
     if (!avatar) {
-      console.log(err);
       return res.status(400).json({
         status_code: 400,
         type: "error",
@@ -229,9 +229,8 @@ class User {
       // Tạo filename (unique) cho avatar
       const filename = `user-${userId}-avatar.jpg`;
       const filePath = path.join("public", "image", filename);
-      // const publicPath = `/public/image/${filename}`;
 
-      //Lưu ảnh với filePath vào file system
+      // Lưu ảnh với filePath vào file system
       fs.writeFileSync(filePath, imageData);
 
       // Query update lại trường avatar trong database sử dụng biến publicPath
