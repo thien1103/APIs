@@ -9,7 +9,7 @@ const { connection } = require("./configuration/dbConfig");
 const path = require("path");
 
 dotenv.config();
-const port = process.env.port || 8080;
+const port = process.env.PORT;
 
 
 // Connect to the database
