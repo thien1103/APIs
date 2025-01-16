@@ -288,22 +288,7 @@ class UserAuthentication {
                         message: "Đăng kí không thành công",
                       });
                     }
-                    //*****************************SEND SMS*************************************/
-                    // // const messageText = `Starkid password: ${password}`;
-                    // // const toNumber = `84${req.body.phoneNumber}`
-                    // // const fromNumber = `84377587953`;
-
-                    // try {
-                    //   client.messages
-                    //     .create({
-                    //       body: `This is your password: ${password}`,
-                    //       from: "+17242466685",
-                    //       to: `+84${req.body.phoneNumber}`,
-                    //     })
-                    //     .then((message) => console.log(message.sid));
-                    // } catch (error) {
-                    //   console.error("Error sending SMS:", error);
-                    // }
+                   
                     // *************************EMAIL VERIFICATION*****************************
                     const verificationUrl = `http://${req.get(
                       "host"
