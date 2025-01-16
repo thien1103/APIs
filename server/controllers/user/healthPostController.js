@@ -1,4 +1,4 @@
-const { pool } = require('../configuration/dbConfig');
+const { pool } = require('../../configuration/dbConfig');
 const verifyToken = require('../middleware/verifyToken');
 const path = require('path');
 

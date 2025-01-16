@@ -1,26 +1,11 @@
-const { connection } = require("../configuration/dbConfig");
+const { pool } = require("../../configuration/dbConfig");
 
 class Feedback {
   // Hàm tạo feedback
   CreateFeedBack(req, res) {
-    const { title, content } = req.body;
-    const validTitles = [
-      "phuhuynh_phanhoi",
-      "giaovien_phanhoi",
-      "nhatruong_phanhoi",
-      "nhanxetchung",
-    ];
-
-    // Check if the title is in the list of valid titles
-    if (!validTitles.includes(title)) {
-      return res.status(400).json({
-        status_code: 400,
-        type: "error",
-        message:
-          "Vui lòng nhập tiêu đề theo đúng định dạng ('phuhuynh_phanhoi', 'giaovien_phanhoi', 'nhatruong_phanhoi', 'nhanxetchung')",
-      });
-    } // Exception cho data không hợp lệ
-    if (!content || !title) {
+    const {  content, userId } = req.body;
+    const title = "phuhuynh_phanhoi";
+    if (!content) {
       return res.status(400).json({
         status_code: 400,
         type: "error",
@@ -31,9 +16,9 @@ class Feedback {
     const createdDate = new Date();
 
     // Query insert vào table requests
-    const query =
-      "INSERT INTO mau_nhan_xet (loai, noi_dung, created_at) VALUES (?, ?, ?)";
-    connection.query(query, [title, content, createdDate], (err, result) => {
+    const sql =
+      "INSERT INTO mau_nhan_xet (loai, noi_dung, created_at, creator) VALUES (?, ?, ?, ?)";
+    pool.query(sql, [title, content, createdDate, userId], (err, result) => {
       if (err) {
         console.error(err);
         return res.status(500).json({
@@ -45,21 +30,23 @@ class Feedback {
       return res.status(200).json({
         status_code: 200,
         type: "success",
-        message: "Tin nhắn đã được gửi thành công",
+        message: "Góp ý đã được gửi thành công",
         data: {
           title: title,
           content: content,
           createdDate: createdDate,
+          userId: creator,
         },
       });
     });
   }
 
   //Hàm lấy tất cả feedbacks
-  GetAllFeedBack(req, res) {
+  GetAllFeedBackCreated(req, res) {
     // Query lấy tất cả feedback
-    const query = "SELECT * FROM mau_nhan_xet WHERE loai = 'phuhuynh_phanhoi'";
-    connection.query(query, (err, results) => {
+    const {userId} = req.body;
+    const sql = "SELECT * FROM mau_nhan_xet WHERE loai = 'phuhuynh_phanhoi' AND creator = ?";
+    pool.query(sql,[userId], (err, results) => {
       if (err) {
         console.error(err);
         return res.status(500).json({
@@ -81,7 +68,7 @@ class Feedback {
       const data = results.map((item) => {
         const { id, loai, noi_dung, created_at } = item;
         return {
-          id,
+          feedbackId: id,
           title: loai,
           content: noi_dung,
           createdDate: created_at,
@@ -98,12 +85,12 @@ class Feedback {
   }
 
   //Hàm lấy feedback cụ thể
-  GetDetailedFeedBack(req, res) {
+  GetDetailedFeedBackCreated(req, res) {
     const { feedbackId } = req.params;
 
     // Query lấy tin nhắn bằng token
-    const query = "SELECT * FROM mau_nhan_xet WHERE loai = 'phuhuynh_phanhoi' AND id = ?";
-    connection.query(query, [feedbackId], (err, result) => {
+    const sql = "SELECT * FROM mau_nhan_xet WHERE loai = 'phuhuynh_phanhoi' AND id = ?";
+    pool.query(sql, [feedbackId], (err, result) => {
       if (err) {
         console.error(err);
         return res.status(500).json({
@@ -150,7 +137,7 @@ class Feedback {
   //   }
   //   // Query update vào table messages
   //   const query = "UPDATE feedbacks SET content = ?, title = ? WHERE feedbackId = ?";
-  //   connection.query(query, [content, title, feedbackId], (err, result) => {
+  //   pool.query(query, [content, title, feedbackId], (err, result) => {
   //     if (err) {
   //       console.error(err);
   //       return res.status(500).json({
@@ -186,7 +173,7 @@ class Feedback {
   //   const { feedbackId } = req.params;
 
   //   const query = "DELETE FROM feedbacks WHERE feedbackId = ?";
-  //   connection.query(query, [feedbackId], (err, result) => {
+  //   pool.query(query, [feedbackId], (err, result) => {
   //     if (err) {
   //       console.error(err);
   //       return res

@@ -1,10 +1,10 @@
 
-const {connection} = require('../configuration/dbConfig')
+const {pool} = require('../../configuration/dbConfig')
 
 class Contact{
     GetAllContacts(req,res){
-    const query = 'SELECT * FROM nhan_vien';
-    connection.query(query, (err, results) => {
+    const sql = 'SELECT * FROM nhan_vien';
+    pool.query(sql, (err, results) => {
         if (err) {
         console.error(err);
         return res.status(500).json({status_code: 500, type:"error", message:"Lỗi server"});

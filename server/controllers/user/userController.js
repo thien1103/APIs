@@ -1,4 +1,4 @@
-const { connection } = require("../configuration/dbConfig");
+const { pool } = require("../../configuration/dbConfig");
 const fs = require("fs");
 const path = require("path");
 
@@ -27,7 +27,7 @@ INNER JOIN Role_PHHS r ON u.id = r.id_ph
 INNER JOIN enrollment_records e ON r.id_hs = e.id
 WHERE u.id = ?`;
 
-    connection.query(getUserSql, [userId], (err, userResult) => {
+    pool.query(getUserSql, [userId], (err, userResult) => {
       if (err) {
         console.log(err);
         return res
@@ -47,7 +47,7 @@ WHERE u.id = ?`;
       const user = userResult[0];
       // Query student type information
       const getClasssql = "SELECT name FROM class WHERE id = ?";
-      connection.query(getClasssql, [user.id_class], (err, classResult) => {
+      pool.query(getClasssql, [user.id_class], (err, classResult) => {
         if (err) {
           console.log(err);
           return res.status(500).json({
@@ -142,7 +142,7 @@ WHERE u.id = ?`;
     updateParams.push(userId);
 
     // Execute the update query
-    connection.query(updateUserSql, updateParams, (err, result) => {
+    pool.query(updateUserSql, updateParams, (err, result) => {
       if (err) {
         console.log(err);
         return res
@@ -193,7 +193,7 @@ WHERE u.id = ?`;
 
       // Query update lại trường avatar trong database sử dụng biến publicPath
       const updateAvatarSql = "UPDATE users as u INNER JOIN Role_PHHS as r ON u.id = r.id_ph INNER JOIN enrollment_records as e ON r.id_hs = e.id SET image = ? WHERE u.id = ?";
-      connection.query(updateAvatarSql, [filename, userId], (err, result) => {
+      pool.query(updateAvatarSql, [filename, userId], (err, result) => {
         if (err) {
           console.log(err);
           return res.status(500).json({
@@ -263,7 +263,7 @@ module.exports = new User();
 
 //     // Kiểm tra xem userId có tồn tại trong database không
 //     const checkUserSql = "SELECT * FROM user WHERE userId = ?";
-//     connection.query(checkUserSql, [userId], (err, result) => {
+//     pool.query(checkUserSql, [userId], (err, result) => {
 //       if (err) {
 //         console.log(err);
 //         return res
@@ -303,7 +303,7 @@ module.exports = new User();
 //           // Cập nhật mật khẩu mới trong database
 //           const updatePasswordSql =
 //             "UPDATE user SET password = ? WHERE userId = ?";
-//           connection.query(updatePasswordSql, [hash, userId], (err, result) => {
+//           pool.query(updatePasswordSql, [hash, userId], (err, result) => {
 //             if (err) {
 //               console.log(err);
 //               return res

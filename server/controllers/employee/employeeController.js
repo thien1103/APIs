@@ -1,33 +1,27 @@
-const { connection } = require("../configuration/dbConfig");
+const { pool } = require("../../configuration/dbConfig");
 const fs = require("fs");
 const path = require("path");
 
-class User {
+class Employee {
   //Controller cho API lấy, hiển thị thông tin người dùng
-  GetUserInfo(req, res) {
-    const userId = req.params.userId;
-    const getUserSql = `SELECT 
-  u.name, 
-  u.email, 
-  u.username, 
-  u.phone_number, 
-  u.email, 
-  e.gender, 
-  e.address, 
-  e.id_class,
-  e.image, 
-  e.parent_name, 
-  e.parent_email, 
-  e.parent_phone, 
-  e.mother_name, 
-  e.mother_phone, 
-  e.mother_email
-FROM users u
-INNER JOIN Role_PHHS r ON u.id = r.id_ph
-INNER JOIN enrollment_records e ON r.id_hs = e.id
-WHERE u.id = ?`;
+  GetEmployeeInfo(req, res) {
+    const employeeId = req.params.employeeId;
+    const getEmployeeSql = `SELECT 
+  nv.ma_nv, 
+  nv.hinh_anh, 
+  nv.ho, 
+  nv.ten, 
+  nv.gioitinh, 
+  nv.ngaysinh, 
+  nv.dien_thoai, 
+  nv.email,
+  nv.dia_chi, 
+  nv.chuc_vu,
+  nv.chuyen_mon 
+FROM nhan_vien nv
+WHERE nv.ma_nv = ?`;
 
-    connection.query(getUserSql, [userId], (err, userResult) => {
+    pool.query(getEmployeeSql, [employeeId], (err, employeeResult) => {
       if (err) {
         console.log(err);
         return res
@@ -35,7 +29,7 @@ WHERE u.id = ?`;
           .json({ status_code: 500, type: "error", message: "Lỗi server" });
       }
 
-      if (userResult.length === 0) {
+      if (employeeResult.length === 0) {
         console.log(err);
         return res.status(404).json({
           status_code: 404,
@@ -44,132 +38,125 @@ WHERE u.id = ?`;
         });
       }
 
-      const user = userResult[0];
-      // Query student type information
-      const getClasssql = "SELECT name FROM class WHERE id = ?";
-      connection.query(getClasssql, [user.id_class], (err, classResult) => {
-        if (err) {
-          console.log(err);
-          return res.status(500).json({
-            status_code: 500,
-            type: "error",
-            message: "Lỗi server",
-          });
-        }
-
-        const class_ = classResult.length > 0 ? classResult[0].name : null;
-
-        let userInfo = {
-          name: user.name,
-          phoneNumber: user.phone_number,
-          email: user.email,
-          sex: user.gender === 1 ? "Nam" : "Nữ",
-          address: user.address,
-          avatar: user.image,
-          sex: user.sex,
-          classStudy: class_,
-          mother: {
-            name: user.mother_name,
-            phoneNumber: user.mother_phone,
-            email: user.email,
-          },
-          father: {
-            name: user.parent_name,
-            phoneNumber: user.parent_phone,
-            email: user.email,
-          },
+      const employee = employeeResult[0];
+        let employeeInfo = {
+          id: employee.ma_nv,
+          avatar: employee.hinh_anh,
+          name: employee.ho + " " + employee.ten,
+          email: employee.email,
+          sex: employee.gioitinh,
+          address: employee.dia_chi,
+          phoneNumber: employee.dien_thoai,
+          ngay_sinh: employee.ngaysinh,
+          chuc_vu: employee.chuc_vu,
+          chuyen_mon: employee.chuyen_mon,
         };
 
         return res.status(200).json({
           status_code: 200,
           type: "success",
           message: "Thông tin người dùng",
-          data: userInfo,
+          data: employeeInfo,
         });
       });
-    });
   }
 
-  UpdateUserInfo(req, res) {
-    const userId = req.params.userId;
-    const { name, sex, phoneNumber, email, address, classStudy } = req.body;
-
-    // Build the SQL query dynamically based on the fields provided in the request body
-    let updateUserSql = "UPDATE users u ";
-    updateUserSql += "INNER JOIN Role_PHHS r ON u.id = r.id_ph ";
-    updateUserSql += "INNER JOIN enrollment_records e ON r.id_hs = e.id ";
-    updateUserSql += "SET ";
-    const updateParams = [];
-
-    // Add the fields to be updated and their corresponding values to the query
-    if (name !== undefined) {
-      updateUserSql += "u.name = ?, ";
-      updateParams.push(name);
+  UpdateEmployeeInfo(req, res) {
+    const employeeId = req.params.employeeId; // Employee ID from the route parameters
+    const { avatar, name, sex, phoneNumber, email, address, ngaySinh, chucVu, chuyenMon } = req.body;
+  
+    if (!employeeId) {
+      return res.status(400).json({
+        status_code: 400,
+        type: "error",
+        message: "Missing employee ID",
+      });
     }
-        if (name !== undefined) {
-          updateUserSql += "e.name = ?, ";
-          updateParams.push(name);
-        }
+  
+    // Build the SQL query dynamically based on the fields provided in the request body
+    let updateEmployeeSql = "UPDATE nhan_vien nv SET ";
+    const updateParams = [];
+  
+    if (avatar !== undefined) {
+      updateEmployeeSql += "nv.hinh_anh = ?, ";
+      updateParams.push(avatar);
+    }
+    if (name !== undefined) {
+      const [ho, ...tenParts] = name.split(" "); // Split full name into first name and last name
+      const ten = tenParts.join(" ");
+      updateEmployeeSql += "nv.ho = ?, nv.ten = ?, ";
+      updateParams.push(ho, ten);
+    }
+    if (sex !== undefined) {
+      updateEmployeeSql += "nv.gioitinh = ?, ";
+      updateParams.push(sex === "Nam" ? 1 : 0); // Assuming "Nam" is male (1), otherwise female (0)
+    }
     if (phoneNumber !== undefined) {
-      updateUserSql += "u.phone_number = ?, ";
+      updateEmployeeSql += "nv.dien_thoai = ?, ";
       updateParams.push(phoneNumber);
     }
     if (email !== undefined) {
-      updateUserSql += "u.email = ?, ";
+      updateEmployeeSql += "nv.email = ?, ";
       updateParams.push(email);
     }
     if (address !== undefined) {
-      updateUserSql += "e.address = ?, ";
+      updateEmployeeSql += "nv.dia_chi = ?, ";
       updateParams.push(address);
     }
-    if (sex !== undefined) {
-      updateUserSql += "e.gender = ?, ";
-      updateParams.push(sex === "Nam" ? 1 : 0);
+    if (ngaySinh !== undefined) {
+      updateEmployeeSql += "nv.ngaysinh = ?, ";
+      updateParams.push(ngaySinh);
     }
-     if (classStudy !== undefined) {
-       updateUserSql += "id_class = ?, ";
-       updateParams.push(classStudy);
-     }
-
-    // Update the field updated_at in database
+    if (chucVu !== undefined) {
+      updateEmployeeSql += "nv.chuc_vu = ?, ";
+      updateParams.push(chucVu);
+    }
+    if (chuyenMon !== undefined) {
+      updateEmployeeSql += "nv.chuyen_mon = ?, ";
+      updateParams.push(chuyenMon);
+    }
+  
+    // Update the field `updated_at`
     const updated_at = new Date();
-    updateUserSql += "u.updated_at = ?, ";
-    updateUserSql += "e.updated_at = ? ";
-    updateParams.push(updated_at, updated_at);
-
-    // Add the WHERE clause for the user update
-    updateUserSql += "WHERE u.id = ?";
-    updateParams.push(userId);
-
+    updateEmployeeSql += "nv.updated_at = ? ";
+    updateParams.push(updated_at);
+  
+    // Add the WHERE clause for the employee update
+    updateEmployeeSql += "WHERE nv.ma_nv = ?";
+    updateParams.push(employeeId);
+  
     // Execute the update query
-    connection.query(updateUserSql, updateParams, (err, result) => {
+    pool.query(updateEmployeeSql, updateParams, (err, result) => {
       if (err) {
-        console.log(err);
-        return res
-          .status(500)
-          .json({ status_code: 500, type: "error", message: "Server error" });
+        console.error(err);
+        return res.status(500).json({
+          status_code: 500,
+          type: "error",
+          message: "Server error",
+        });
       }
-
+  
       if (result.affectedRows === 0) {
         return res.status(404).json({
           status_code: 404,
           type: "error",
-          message: "Người dùng không tồn tại",
+          message: "Employee not found",
         });
       }
-
+  
       // Update was successful
       return res.status(200).json({
         status_code: 200,
         type: "success",
-        message: "Cập nhật thông tin người dùng thành công",
+        message: "Employee information updated successfully",
       });
     });
   }
+  
 
   //Hàm xử lí thay đổi avatar cá nhân
   ChangeAvatar(req, res) {
-    const userId = req.params.userId;
+    const employeeId = req.params.employeeId;
     const { avatar } = req.body;
 
     if (!avatar) {
@@ -185,15 +172,15 @@ WHERE u.id = ?`;
       const imageData = Buffer.from(avatar, "base64");
 
       // Tạo filename (unique) cho avatar
-      const filename = `user-${userId}-avatar.jpg`;
+      const filename = `employee-${employeeId}-avatar.jpg`;
       const filePath = path.join("public", "image", filename);
 
       // Lưu ảnh với filePath vào file system
       fs.writeFileSync(filePath, imageData);
 
       // Query update lại trường avatar trong database sử dụng biến publicPath
-      const updateAvatarSql = "UPDATE users as u INNER JOIN Role_PHHS as r ON u.id = r.id_ph INNER JOIN enrollment_records as e ON r.id_hs = e.id SET image = ? WHERE u.id = ?";
-      connection.query(updateAvatarSql, [filename, userId], (err, result) => {
+      const updateAvatarSql = "UPDATE nhan_vien SET hinh_anh = ? WHERE ma_nv = ?";
+      pool.query(updateAvatarSql, [filename, employeeId], (err, result) => {
         if (err) {
           console.log(err);
           return res.status(500).json({
@@ -229,7 +216,7 @@ WHERE u.id = ?`;
   }
 
   //Hàm GetUserAvatar để gửi lên client
-  GetUserAvatar(req, res) {
+  GetEmployeeAvatar(req, res) {
     const { filename } = req.params;
     const imagePath = path.resolve(
       __dirname,
@@ -252,7 +239,7 @@ WHERE u.id = ?`;
   }
 }
 
-module.exports = new User();
+module.exports = new Employee();
 
 // NỀU LỠ QUÊN MẬT KHẨU THÌ THAY BẰNG HÀM NÀY ĐỂ ĐỔI LẠI MẬT KHẨU
 
@@ -263,7 +250,7 @@ module.exports = new User();
 
 //     // Kiểm tra xem userId có tồn tại trong database không
 //     const checkUserSql = "SELECT * FROM user WHERE userId = ?";
-//     connection.query(checkUserSql, [userId], (err, result) => {
+//     pool.query(checkUserSql, [userId], (err, result) => {
 //       if (err) {
 //         console.log(err);
 //         return res
@@ -303,7 +290,7 @@ module.exports = new User();
 //           // Cập nhật mật khẩu mới trong database
 //           const updatePasswordSql =
 //             "UPDATE user SET password = ? WHERE userId = ?";
-//           connection.query(updatePasswordSql, [hash, userId], (err, result) => {
+//           pool.query(updatePasswordSql, [hash, userId], (err, result) => {
 //             if (err) {
 //               console.log(err);
 //               return res

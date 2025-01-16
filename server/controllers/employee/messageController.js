@@ -1,9 +1,9 @@
-const { connection } = require("../configuration/dbConfig");
+const { pool } = require("../../configuration/dbConfig");
 
 class Message {
   // Hàm tạo và gửi tin nhắn
   SendMessage(req, res) {
-    const { content, status } = req.body;
+    const { content, from, to, status } = req.body;
 
     // Exception cho data không hợp lệ
     if (!content || status === undefined) {
@@ -15,7 +15,7 @@ class Message {
     }
 
     const created = new Date();
-    const image = "";
+    const image = '';
 
     // If để phân loại status trả về
     let statusValue;
@@ -32,10 +32,11 @@ class Message {
     }
 
     // Query insert vào table requests
-    const query = `INSERT INTO messages (content, image, createdDate, status) VALUES (?, ?, ?, ?)`;
-    connection.query(
-      query,
-      [content, image, created, statusValue],
+    const sql =
+      `INSERT INTO messages (content, image, from, to, createdDate, status) VALUES (?, ?, ?, ?, ?, ?)`;
+    pool.query(
+      sql,
+      [content, image, from, to, created, statusValue],
       (err, result) => {
         if (err) {
           console.error(err);
@@ -61,9 +62,10 @@ class Message {
 
   //Hàm lấy tất cả tin nhắn
   GetAllMessage(req, res) {
+    const {userId} = req.params;
     // Query lấy tất cả tin nhắn
-    const query = "SELECT * FROM messages";
-    connection.query(query, (err, results) => {
+    const sql = "SELECT * FROM messages WHERE to = ?";
+    pool.query(sql, [userId], (err, results) => {
       if (err) {
         console.error(err);
         return res.status(500).json({
@@ -72,6 +74,7 @@ class Message {
           message: "Lỗi server",
         });
       }
+      
 
       if (results.length === 0) {
         return res.status(404).json({
@@ -112,8 +115,8 @@ class Message {
     const { messageId } = req.params;
 
     // Query lấy tin nhắn bằng token
-    const query = "SELECT * FROM messages WHERE id = ?";
-    connection.query(query, [messageId], (err, result) => {
+    const sql = "SELECT * FROM messages WHERE id = ?";
+    pool.query(sql, [messageId], (err, result) => {
       if (err) {
         console.error(err);
         return res.status(500).json({
@@ -155,10 +158,10 @@ class Message {
   // Hàm update tin nhắn
   UpdateMessage(req, res) {
     const { messageId } = req.params;
-    const { content, status } = req.body;
+    const {  content, status } = req.body;
 
     // Exception cho data không hợp lệ
-    if (!content || status === undefined) {
+    if ( !content || status === undefined) {
       return res.status(400).json({
         status_code: 400,
         type: "error",
@@ -181,9 +184,10 @@ class Message {
     }
 
     // Query update vào table messages
-    const query = "UPDATE messages SET content = ?, status = ? WHERE id = ?";
-    connection.query(
-      query,
+    const sql =
+      "UPDATE messages SET content = ?, status = ? WHERE id = ?";
+    pool.query(
+      sql,
       [content, statusValue, messageId],
       (err, result) => {
         if (err) {
@@ -221,8 +225,8 @@ class Message {
   DeleteMessage(req, res) {
     const { messageId } = req.params;
 
-    const query = "DELETE FROM messages WHERE id = ?";
-    connection.query(query, [messageId], (err, result) => {
+    const sql = "DELETE FROM messages WHERE id = ?";
+    pool.query(sql, [messageId], (err, result) => {
       if (err) {
         console.error(err);
         return res

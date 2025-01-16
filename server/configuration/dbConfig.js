@@ -1,21 +1,31 @@
-const mysql = require('mysql2');
-require('dotenv/config')
+const mysql = require("mysql2");
 
-const connection = mysql.createConnection({
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME
+const pool = mysql.createPool({
+  host: "star-kid-change-starkid-change.j.aivencloud.com",
+  port: "15742",
+  user: "avnadmin",
+  password: "AVNS_NrW_88_sD326XfB1JAD",
+  database: "test_phan_quyen",
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
 });
 
-// const connection = mysql.createConnection({
-//     host: 'localhost',
-//     port: '3306',
-//     user: 'root',
-//     password: 'root',
-//     database: 'testapi'
-// });
+// Function to keep the connection alive
+function keepConnectionAlive() {
+  pool.query("SELECT 1", (err, rows) => {
+    if (err) {
+      console.error("Error keeping connection alive:", err);
+    } else {
+      console.log("Connection kept alive");
+    }
+  });
+}
+
+// Set an interval to check the connection every 2 minutes (120000 milliseconds)
+setInterval(keepConnectionAlive, 120000);
+
 module.exports = {
-    connection
+  pool,
+  keepConnectionAlive,
 };

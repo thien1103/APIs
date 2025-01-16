@@ -1,17 +1,19 @@
-const {connection} = require('../configuration/dbConfig')
+const {pool} = require('../../configuration/dbConfig')
 
 class PickUp{
 
     //Hàm lấy danh sách tất cả các lượt đón-đưa
-    GetAllPickUps(req,res){
-        const query = 'SELECT n.user_id, n.phoneNumber, n.idNumber, n.relationship, n.action, n.note, u.name FROM nhat_ky_phu_huynh as n INNER JOIN users as u ON n.user_id = u.id';
-        connection.query(query, (err, results) => {
+    GetAllPickUpsEachUser(req,res){
+      const {userId} = req.body;
+        const sql = 'SELECT n.id, n.user_id, u.phone_number AS phoneNumber, n.idNumber, n.relationship, n.action, n.note, u.name FROM nhat_ky_phu_huynh as n INNER JOIN users as u ON n.user_id = u.id WHERE u.id = ?';
+        pool.query(sql, [userId], (err, results) => {
             if (err) {
             console.error(err);
             return res.status(500).json({status_code: 500, type:"error", message:"Lỗi không thể lấy danh sách đưa đón. Vui lòng thử lại sau"});
             }
 
             const pickups = results.map((pickup) => ({
+              id: pickup.id,
               userId: pickup.user_id,
               name: pickup.name,
               phoneNumber: pickup.phoneNumber,
@@ -25,19 +27,47 @@ class PickUp{
         });
     }
 
+
+//Hàm lấy thông tin chi tiết lượt đón đưa
+GetDetailPickup(req,res){
+  const {pickupId} = req.params;
+    const sql = 'SELECT n.id, n.user_id, u.phone_number AS phoneNumber, n.idNumber, n.relationship, n.action, n.note, u.name FROM nhat_ky_phu_huynh as n INNER JOIN users as u ON n.user_id = u.id WHERE n.id = ?';
+    pool.query(sql, [pickupId], (err, results) => {
+        if (err) {
+        console.error(err);
+        return res.status(500).json({status_code: 500, type:"error", message:"Lỗi không thể lấy danh sách đưa đón. Vui lòng thử lại sau"});
+        }
+
+        const pickups = results.map((pickup) => ({
+          id: pickup.id,
+          userId: pickup.user_id,
+          name: pickup.name,
+          phoneNumber: pickup.phoneNumber,
+          relationship: pickup.relationship,
+          idNumber: pickup.idNumber,
+          action: pickup.action,
+          note: pickup.note,
+        }));
+
+        return res.status(200).json({status_code: 200, type:"success", message:"Thông tin đưa đón", data: pickups});
+    });
+}
+    
+  
+
     //Hàm để tạo pick up trẻ
     CreatePickUp(req,res){
-        const { userId, phoneNumber, relationship, idNumber, action, note } = req.body;
+        const { userId, relationship, idNumber, action, note } = req.body;
         const created_at = new Date();
         // Kiểm tra dữ liệu đầu vào
-        if (!userId || !phoneNumber || !relationship || !action) {
+        if (!userId || !idNumber || !relationship || !action) {
           return res.status(400).json({status_code: 400, type:"error", message:"Vui lòng điền đầy đủ thông tin"});
         }
     
-        const query = 'INSERT INTO nhat_ky_phu_huynh (user_id, phoneNumber, relationship, idNumber, action, note, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)';
-        connection.query(
-          query,
-          [userId, phoneNumber, relationship, idNumber, action, note, created_at],
+        const sql = 'INSERT INTO nhat_ky_phu_huynh (user_id, relationship, idNumber, action, note, created_at) VALUES (?, ?, ?, ?, ?, ?)';
+        pool.query(
+          sql,
+          [userId, relationship, idNumber, action, note, created_at],
           (err, result) => {
             if (err) {
               console.error(err);
@@ -52,20 +82,17 @@ class PickUp{
       //Hàm Update đón-đưa 
       UpdatePickUp(req, res) {
         const { pickupId } = req.params;
-        const { userId, phoneNumber, relationship, idNumber, action, note } = req.body;
+        const { relationship, idNumber, action, note } = req.body;
       
-        //Dùng hàm Trim cho biến userId để xóa khoảng trống
-        const trimmedUserId = userId.trim();
-      
-        // check biến trimmedUserId sau khi đã xóa khoảng trống xem còn khoảng trống không
-        if (!trimmedUserId) {
+
+        if (!userId) {
           return res.status(404).json({status_code: 404, type:"error", message:"Lỗi không tìm thấy ID người dùng"});
         }
       
-        const query = 'UPDATE nhat_ky_phu_huynh SET user_id = ?, phoneNumber = ?, relationship = ?, idNumber = ?, action = ?, note = ? WHERE id = ?';
-        connection.query(
-          query,
-          [trimmedUserId, phoneNumber, relationship, idNumber, action, note, pickupId],
+        const sql = 'UPDATE nhat_ky_phu_huynh SET relationship = ?, idNumber = ?, action = ?, note = ? WHERE id = ?';
+        pool.query(
+          sql,
+          [relationship, idNumber, action, note, pickupId],
           (err, result) => {
             if (err) {
               console.error(err);
@@ -85,9 +112,9 @@ class PickUp{
       DeletePickUp(req, res) {
         const { pickupId } = req.params;
       
-        const query = 'DELETE FROM nhat_ky_phu_huynh WHERE id = ?';
-        connection.query(
-          query,
+        const sql = 'DELETE FROM nhat_ky_phu_huynh WHERE id = ?';
+        pool.query(
+          sql,
           [pickupId],
           (err, result) => {
             if (err) {
