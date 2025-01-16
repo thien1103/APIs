@@ -6,9 +6,6 @@ const salt = 10;
 const crypto = require("crypto");
 require("dotenv/config");
 const nodemailer = require("nodemailer");
-// const accountSid = "AC159d838df05c44d1c07f18724fb4c83d";
-// const authToken = "dd86205051e430083c9ef06965fedaf2";
-// const client = require("twilio")(accountSid, authToken);
 
 class UserAuthentication {
   // Hàm đăng nhập Sign In

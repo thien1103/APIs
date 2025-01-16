@@ -1,11 +1,11 @@
 const mysql = require("mysql2");
 
 const pool = mysql.createPool({
-  host: "star-kid-change-starkid-change.j.aivencloud.com",
+  host: process.env.DB_HOST,
   port: "15742",
-  user: "avnadmin",
-  password: "AVNS_NrW_88_sD326XfB1JAD",
-  database: "test_phan_quyen",
+  user: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
