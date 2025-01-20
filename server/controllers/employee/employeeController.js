@@ -221,6 +221,7 @@ WHERE nv.ma_nv = ?`;
     const imagePath = path.resolve(
       __dirname,
       "..",
+      "..",
       "public",
       "image",
       filename

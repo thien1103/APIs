@@ -234,6 +234,7 @@ WHERE u.id = ?`;
     const imagePath = path.resolve(
       __dirname,
       "..",
+      "..",
       "public",
       "image",
       filename
