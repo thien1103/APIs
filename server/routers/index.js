@@ -11,7 +11,7 @@ const feedbackRouter = require("./feedbackRouter");
 const nutritionRouter = require("./nutritionRouter")
 const menuRouter = require("./menuRouter")
 const studentFeeRouter = require("./studentFeeRouter");
-const employeeController = require('./employeeRouter');
+const employeeRouter = require('./employeeRouter');
 
 
 function route(app){
@@ -29,7 +29,7 @@ function route(app){
   app.use("/api", nutritionRouter);
   app.use("/api", menuRouter);
   app.use("/api", studentFeeRouter);
-  app.use("/api", employeeController);
+  app.use("/api", employeeRouter);
 
 
 }
