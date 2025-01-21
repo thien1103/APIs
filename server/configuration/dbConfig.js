@@ -1,4 +1,5 @@
 const mysql = require("mysql2");
+require('dotenv')
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
@@ -20,7 +21,7 @@ function keepConnectionAlive() {
       console.log("Connection kept alive");
     }
   });
-}
+} 
 
 // Set an interval to check the connection every 2 minutes (120000 milliseconds)
 setInterval(keepConnectionAlive, 120000);

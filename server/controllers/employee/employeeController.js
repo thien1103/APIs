@@ -5,61 +5,64 @@ const path = require("path");
 class Employee {
   //Controller cho API lấy, hiển thị thông tin người dùng
   GetEmployeeInfo(req, res) {
-    const employeeId = req.params.employeeId;
+    const employeeId = req.params.employeeId;  // Use params to get the employeeId from URL
+    
     const getEmployeeSql = `SELECT 
-  nv.ma_nv, 
-  nv.hinh_anh, 
-  nv.ho, 
-  nv.ten, 
-  nv.gioitinh, 
-  nv.ngaysinh, 
-  nv.dien_thoai, 
-  nv.email,
-  nv.dia_chi, 
-  nv.chuc_vu,
-  nv.chuyen_mon 
-FROM nhan_vien nv
-WHERE nv.ma_nv = ?`;
+        nv.ma_nv, 
+        nv.hinh_anh, 
+        nv.ho, 
+        nv.ten, 
+        nv.gioitinh, 
+        nv.ngay_sinh, 
+        nv.dien_thoai, 
+        nv.email,
+        nv.dia_chi, 
+        nv.chuc_vu,
+        nv.chuyen_mon 
+    FROM nhan_vien nv
+    WHERE nv.ma_nv = ?`;  // Correct parameterized query
 
     pool.query(getEmployeeSql, [employeeId], (err, employeeResult) => {
-      if (err) {
-        console.log(err);
-        return res
-          .status(500)
-          .json({ status_code: 500, type: "error", message: "Lỗi server" });
-      }
+        if (err) {
+            console.log(err);
+            return res.status(500).json({
+                status_code: 500,
+                type: "error",
+                message: "Lỗi server",
+            });
+        }
 
-      if (employeeResult.length === 0) {
-        console.log(err);
-        return res.status(404).json({
-          status_code: 404,
-          type: "error",
-          message: "Người dùng không tồn tại",
-        });
-      }
+        if (employeeResult.length === 0) {
+            return res.status(404).json({
+                status_code: 404,
+                type: "error",
+                message: "Người dùng không tồn tại",
+            });
+        }
 
-      const employee = employeeResult[0];
+        const employee = employeeResult[0];
         let employeeInfo = {
-          id: employee.ma_nv,
-          avatar: employee.hinh_anh,
-          name: employee.ho + " " + employee.ten,
-          email: employee.email,
-          sex: employee.gioitinh,
-          address: employee.dia_chi,
-          phoneNumber: employee.dien_thoai,
-          ngay_sinh: employee.ngaysinh,
-          chuc_vu: employee.chuc_vu,
-          chuyen_mon: employee.chuyen_mon,
+            id: employee.ma_nv,
+            avatar: employee.hinh_anh,
+            name: employee.ho + " " + employee.ten,
+            email: employee.email,
+            sex: employee.gioitinh,
+            address: employee.dia_chi,
+            phoneNumber: employee.dien_thoai,
+            ngay_sinh: employee.ngaysinh,
+            chuc_vu: employee.chuc_vu,
+            chuyen_mon: employee.chuyen_mon,
         };
 
         return res.status(200).json({
-          status_code: 200,
-          type: "success",
-          message: "Thông tin người dùng",
-          data: employeeInfo,
+            status_code: 200,
+            type: "success",
+            message: "Thông tin người dùng",
+            data: employeeInfo,
         });
-      });
-  }
+    });
+}
+
 
   UpdateEmployeeInfo(req, res) {
     const employeeId = req.params.employeeId; // Employee ID from the route parameters

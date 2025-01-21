@@ -10,7 +10,8 @@ const remindMedicinesRouter = require("./remindMedicinesRouter")
 const feedbackRouter = require("./feedbackRouter");
 const nutritionRouter = require("./nutritionRouter")
 const menuRouter = require("./menuRouter")
-const studentFeeRouter = require("./studentFeeRouter")
+const studentFeeRouter = require("./studentFeeRouter");
+const employeeController = require('./employeeRouter');
 
 
 function route(app){
@@ -28,6 +29,7 @@ function route(app){
   app.use("/api", nutritionRouter);
   app.use("/api", menuRouter);
   app.use("/api", studentFeeRouter);
+  app.use("/api", employeeController);
 
 
 }
