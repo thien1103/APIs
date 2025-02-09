@@ -33,7 +33,7 @@ class Message {
 
     // Query insert vào table requests
     const sql =
-      `INSERT INTO messages (content, image, from, to, createdDate, status) VALUES (?, ?, ?, ?, ?, ?)`;
+      `INSERT INTO messages (content, image, ffrom, tto, createdDate, status) VALUES (?, ?, ?, ?, ?, ?)`;
     pool.query(
       sql,
       [content, image, from, to, created, statusValue],
@@ -64,7 +64,7 @@ class Message {
   GetAllMessage(req, res) {
     const {userId} = req.params;
     // Query lấy tất cả tin nhắn
-    const sql = "SELECT * FROM messages WHERE to = ?";
+    const sql = "SELECT * FROM messages WHERE tto = ?";
     pool.query(sql, [userId], (err, results) => {
       if (err) {
         console.error(err);
