@@ -62,10 +62,10 @@ class Message {
 
   //Hàm lấy tất cả tin nhắn
   GetAllMessage(req, res) {
-    const {userId} = req.params;
+    const {name} = req.params;
     // Query lấy tất cả tin nhắn
     const sql = "SELECT * FROM messages WHERE tto = ?";
-    pool.query(sql, [userId], (err, results) => {
+    pool.query(sql, [name], (err, results) => {
       if (err) {
         console.error(err);
         return res.status(500).json({
