@@ -7,7 +7,23 @@ class Request {
   GetAllLeaveRequestsOnClassForTeacher(req, res) {
     try {
       const { teacherClasses } = req.body; // Assuming teacherClasses is passed in the request body
-  
+      
+      // Validate and sanitize input
+      const sanitizedClasses = teacherClasses 
+        ? teacherClasses.map(Number).filter(Boolean)
+        : [];
+        
+      if (sanitizedClasses.length === 0) {
+        return res.status(400).json({
+          status_code: 400,
+          type: "error",
+          message: "Danh sách lớp học không hợp lệ"
+        });
+      }
+
+      // Create safe parameterized query
+      const placeholders = sanitizedClasses.map(() => '?').join(',');
+
       const sql = `
         SELECT 
           l.id, 
@@ -27,10 +43,10 @@ class Request {
         INNER JOIN users u ON l.user_id = u.id 
         INNER JOIN Role_PHHS rp ON u.id = rp.id_ph 
         INNER JOIN enrollment_records er ON rp.id_hs = er.id 
-        WHERE er.id_class = ?
+        WHERE er.id_class IN (${placeholders})
       `;
   
-      pool.query(sql, [teacherClasses], (err, results) => {
+      pool.query(sql, sanitizedClasses, (err, results) => {
         if (err) {
           console.error(err);
           return res.status(500).json({
