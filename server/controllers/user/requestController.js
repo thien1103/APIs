@@ -97,9 +97,9 @@ class Request {
   //Hàm Update yêu cầu nghỉ phép
   UpdateLeaveRequest(req, res) {
     const { requestId } = req.params;
-    const { content, dateRangeList, startDate, endDate } = req.body;
-    const formattedStartDate = moment(startDate).format("YYYY-MM-DD HH:mm:ss");
-    const formattedEndDate = moment(endDate).format("YYYY-MM-DD HH:mm:ss");
+    const { content, dateRangeList, startDateTime, endDateTime } = req.body;
+    const formattedStartDate = moment(startDateTime).format("YYYY-MM-DD HH:mm:ss");
+    const formattedEndDate = moment(endDateTime).format("YYYY-MM-DD HH:mm:ss");
     const title = "";
     try {
       //Hàm update trong requests
@@ -401,8 +401,8 @@ class Request {
               },
             },
           ],
-          startDate: startDateTime.toISOString(),
-          endDate: endDateTime.toISOString(),
+          startDateTime: startDateTime.toISOString(),
+          endDateTime: endDateTime.toISOString(),
           status: statusText,
         };
     
