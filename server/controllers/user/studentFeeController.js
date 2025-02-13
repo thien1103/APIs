@@ -11,15 +11,27 @@ class StudentFee {
         k.ngay_khoi_tao, 
         k.tien_phai_tra, 
         k.tien_da_tra, 
-        t.ma_hd 
+        t.ma_hd
       FROM 
         khoan_apdung_hs AS k 
       INNER JOIN 
         thu_tien_hoc_phi AS t 
       ON 
         k.id_hs = t.id_hs 
+      INNER JOIN
+        enrollment_records as er
+      ON 
+        t.id_hs = er.id
+      INNER JOIN 
+        Role_PHHS AS rp
+      ON
+        er.id = rp.id_hs
+      INNER JOIN
+        users as u
+      ON
+        rp.id_ph = u.id
       WHERE 
-        k.id_hs = ?
+        u.id = ?
     `;
 
     pool.query(sql, [req.params.userId], (error, results) => {
