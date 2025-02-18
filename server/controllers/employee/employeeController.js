@@ -1,6 +1,8 @@
 const { pool } = require("../../configuration/dbConfig");
 const fs = require("fs");
 const path = require("path");
+const { unserialize } = require("php-serialize");
+
 
 class Employee {
   //Controller cho API lấy, hiển thị thông tin người dùng
@@ -62,6 +64,152 @@ class Employee {
         });
     });
 }
+
+
+
+GetEmployeeByEnrollmentID(req, res) {
+  const { enrollmentId } = req.body;
+
+  // Step 1: Retrieve the class from enrollment_records based on enrollmentId
+  const getClassSql = 'SELECT id_class FROM enrollment_records WHERE id = ?';
+  pool.query(getClassSql, [enrollmentId], (err, classResult) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).json({
+        status_code: 500,
+        type: "error",
+        message: "Lỗi server khi lấy thông tin lớp học",
+      });
+    }
+
+    if (classResult.length === 0) {
+      return res.status(404).json({
+        status_code: 404,
+        type: "error",
+        message: "Không tìm thấy thông tin đăng ký",
+      });
+    }
+
+    const classId = classResult[0].id_class;
+    console.log("class id giao vien: ",classId);
+
+
+    // Step 2: Retrieve the serialized teacher IDs from class_teacher
+    const getClassTeacherSql = 'SELECT id_giaovien FROM class_teacher WHERE id_class = ?';
+    pool.query(getClassTeacherSql, [classId], (err, ctResult) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).json({
+          status_code: 500,
+          type: "error",
+          message: "Lỗi server khi lấy thông tin giáo viên lớp",
+        });
+      }
+
+      if (ctResult.length === 0) {
+        return res.status(404).json({
+          status_code: 404,
+          type: "error",
+          message: "Lớp học không có giáo viên được chỉ định",
+        });
+      }
+
+      const idGiaovienSerialized = ctResult[0].id_giaovien;
+      let idGiaovienArray;
+      try {
+        // Step 3: Deserialize the PHP-serialized string to get teacher IDs array
+        idGiaovienArray = unserialize(idGiaovienSerialized);
+        console.log("deserialized giao vien: ",idGiaovienArray);
+
+
+      } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+          status_code: 500,
+          type: "error",
+          message: "Lỗi xử lý dữ liệu giáo viên",
+        });
+      }
+
+      // Ensure the deserialized data is an array
+      if (!Array.isArray(idGiaovienArray)) {
+        return res.status(500).json({
+          status_code: 500,
+          type: "error",
+          message: "Định dạng dữ liệu giáo viên không hợp lệ",
+        });
+      }
+
+      if (idGiaovienArray.length === 0) {
+        return res.status(404).json({
+          status_code: 404,
+          type: "error",
+          message: "Không có giáo viên nào được chỉ định cho lớp học này",
+        });
+      }
+
+
+      // Step 4: Retrieve employee details based on deserialized teacher IDs
+      const getEmployeeSql = `
+        SELECT 
+          ma_nv, 
+          hinh_anh, 
+          ho, 
+          ten, 
+          gioitinh, 
+          ngay_sinh, 
+          dien_thoai, 
+          email,
+          dia_chi, 
+          chuc_vu,
+          chuyen_mon 
+        FROM nhan_vien 
+        WHERE ma_nv IN (?);
+      `;
+
+      pool.query(getEmployeeSql, [idGiaovienArray], (err, employeeResult) => {
+        if (err) {
+          console.log(err);
+          return res.status(500).json({
+            status_code: 500,
+            type: "error",
+            message: "Lỗi server khi lấy thông tin nhân viên",
+          });
+        }
+
+        if (employeeResult.length === 0) {
+          return res.status(404).json({
+            status_code: 404,
+            type: "error",
+            message: "Không tìm thấy thông tin nhân viên",
+          });
+        }
+
+        // Map the results to the desired format
+        const employees = employeeResult.map(employee => ({
+          id: employee.ma_nv,
+          avatar: employee.hinh_anh,
+          name: `${employee.ho} ${employee.ten}`,
+          email: employee.email,
+          sex: employee.gioitinh,
+          address: employee.dia_chi,
+          phoneNumber: employee.dien_thoai,
+          ngay_sinh: employee.ngay_sinh,
+          chuc_vu: employee.chuc_vu,
+          chuyen_mon: employee.chuyen_mon,
+        }));
+
+        return res.status(200).json({
+          status_code: 200,
+          type: "success",
+          message: "Thông tin giáo viên",
+          data: employees,
+        });
+      });
+    });
+  });
+}
+
 
 
   UpdateEmployeeInfo(req, res) {

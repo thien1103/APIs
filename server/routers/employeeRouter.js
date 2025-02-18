@@ -9,5 +9,6 @@ router.get("/employee/info/avatar/:filename", employeeController.GetEmployeeAvat
 router.put('/employee/info/update/:employeeId',verify.verifyToken, employeeController.UpdateEmployeeInfo);
 router.put('/employee/info/changeAvatar/:employeeId', verify.verifyToken, employeeController.ChangeAvatar);
 
+router.post('/employee/getEmployeeByEnrollmentId', verify.verifyToken, employeeController.GetEmployeeByEnrollmentID)
 
 module.exports = router;
