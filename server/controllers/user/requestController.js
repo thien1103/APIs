@@ -4,7 +4,7 @@ const moment = require("moment");
 class Request {
   //Hàm tạo yêu cầu xin nghỉ
   AddLeaveRequest(req, res) {
-    const { user_id, content, startDate, endDate, status, dateRangeList } =
+    const { user_id, content, startDateTime, endDateTime, status, dateRangeList } =
       req.body;
     const title = "";
     // Exception cho data không hợp lệ
@@ -12,8 +12,8 @@ class Request {
       !user_id ||
       !content ||
       !dateRangeList ||
-      !startDate ||
-      !endDate ||
+      !startDateTime ||
+      !endDateTime ||
       status === undefined
     ) {
       return res.status(400).json({
@@ -23,8 +23,8 @@ class Request {
       });
     }
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = new Date(startDateTime);
+    const end = new Date(endDateTime);
     // const created = new Date();
 
     // If để phân loại status trả về
