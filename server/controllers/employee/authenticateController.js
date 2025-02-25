@@ -81,7 +81,7 @@ SignIn(req, res, next) {
                 const payload = { userId: maNv, role: "Giáo viên", teacherClasses };
                 const token = jwt.sign(payload, process.env.JWT_SECRET || "jwt-secret-key", {
                     algorithm: "HS256",
-                    expiresIn: "1h",
+                    // expiresIn: "1h",
                 });
 
                 return res.status(200).json({

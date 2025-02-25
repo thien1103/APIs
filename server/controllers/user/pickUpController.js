@@ -85,8 +85,8 @@ GetDetailPickup(req,res){
         const { relationship, idNumber, action, note } = req.body;
       
 
-        if (!userId) {
-          return res.status(404).json({status_code: 404, type:"error", message:"Lỗi không tìm thấy ID người dùng"});
+        if (!pickupId) {
+          return res.status(404).json({status_code: 404, type:"error", message:"Lỗi không tìm thấy pick up ID"});
         }
       
         const sql = 'UPDATE nhat_ky_phu_huynh SET relationship = ?, idNumber = ?, action = ?, note = ? WHERE id = ?';

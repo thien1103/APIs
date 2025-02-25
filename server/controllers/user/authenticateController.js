@@ -86,7 +86,7 @@ class UserAuthentication {
             const payload = { userId, role: 'Phụ huynh', enrollmentId }; // Add enrollmentId to the payload
             const token = jwt.sign(payload, "jwt-secret-key", {
               algorithm: "HS256",
-              expiresIn: "1h",
+              // expiresIn: "1h",
             });
 
             return res.status(200).json({
