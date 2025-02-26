@@ -60,6 +60,7 @@ WHERE u.id = ?`;
         const class_ = classResult.length > 0 ? classResult[0].name : null;
 
         let userInfo = {
+          username: user.username,
           name: user.name,
           phoneNumber: user.phone_number,
           email: user.email,
