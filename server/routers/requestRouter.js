@@ -6,7 +6,7 @@ const employeeRequestRouter = require('../controllers/employee/requestController
 const verify = require('../middleware/verifyToken');
 
 //user
-router.get('/user/leave-requests/detail/:requestId',verify.verifyToken, userRequestRouter.GetDetailedRemindMedicines);
+router.get('/user/leave-requests/detail/:requestId',verify.verifyToken, userRequestRouter.GetDetailedLeaveRequest);
 router.get('/user/leave-requests/:userId',verify.verifyToken, userRequestRouter.GetAllLeaveRequestsForUser);
 router.post('/user/leave-requests/add',verify.verifyToken, userRequestRouter.AddLeaveRequest);
 router.put('/user/leave-requests/update/:requestId',verify.verifyToken, userRequestRouter.UpdateLeaveRequest);

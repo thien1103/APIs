@@ -230,11 +230,9 @@ class Request {
 
 
   GetAllLeaveRequestsForUser(req, res) {
-    const { userId } = req.params; // Get userId from request parameters
+    const { userId } = req.params;
     try {
-      // Check if the user exists
       const checkUserSql = "SELECT id FROM users WHERE id = ?";
-  
       pool.query(checkUserSql, [userId], (err, userResults) => {
         if (err) {
           console.error(err);
@@ -244,7 +242,7 @@ class Request {
             message: "Lỗi server",
           });
         }
-  
+
         if (userResults.length === 0) {
           return res.status(404).json({
             status_code: 404,
@@ -252,8 +250,7 @@ class Request {
             message: "Người dùng không tồn tại",
           });
         }
-  
-        // If user exists, fetch leave requests
+
         const sql = `
           SELECT 
             l.id, 
@@ -267,7 +264,7 @@ class Request {
           INNER JOIN users u ON l.user_id = u.id
           WHERE user_id = ?
         `;
-  
+
         pool.query(sql, [userId], (err, results) => {
           if (err) {
             console.error(err);
@@ -277,7 +274,7 @@ class Request {
               message: "Lỗi server",
             });
           }
-  
+
           if (results.length === 0) {
             return res.status(404).json({
               status_code: 404,
@@ -285,41 +282,55 @@ class Request {
               message: "Chưa có yêu cầu xin nghỉ nào",
             });
           }
-  
-          // Get the username from the first result
+
           const username = results[0].username;
-  
-          // Formatting JSON response
           const leaveRequests = results.map(row => {
-            const {
-              id,
-              title,
-              content,
-              startDateTime,
-              endDateTime,
-              status,
-            } = row;
-  
-            // Format boolean to text for status
-            const statusText = status === 1 ? "Đã duyệt" : "Chưa duyệt";
-  
-            return {
-              id,
-              title,
-              content,
-              startDateTime: startDateTime.toISOString(),
-              endDateTime: endDateTime.toISOString(),
-              status: statusText,
-              username, // Include username in each request if needed
-            };
+            return new Promise((resolve, reject) => {
+              const dateRangeSql = "SELECT date, morningSession, afternoonSession FROM date_ranges_request WHERE requestId = ?";
+              pool.query(dateRangeSql, [row.id], (err, dateResults) => {
+                if (err) {
+                  reject(err);
+                }
+
+                const dateRangeList = dateResults.map(dateRow => ({
+                  date: dateRow.date,
+                  session: {
+                    morning: dateRow.morningSession === 1,
+                    afternoon: dateRow.afternoonSession === 1,
+                  }
+                }));
+
+                resolve({
+                  id: row.id,
+                  title: row.title,
+                  content: row.content,
+                  startDateTime: row.startDateTime.toISOString(),
+                  endDateTime: row.endDateTime.toISOString(),
+                  status: row.status === 1 ? "Đã duyệt" : "Chưa duyệt",
+                  username,
+                  dateRangeList
+                });
+              });
+            });
           });
-  
-          return res.status(200).json({
-            status_code: 200,
-            type: "success",
-            message: `Danh sách tất cả các yêu cầu xin nghỉ của người dùng ${username}`,
-            data: leaveRequests,
-          });
+
+          Promise.all(leaveRequests)
+            .then(finalResults => {
+              return res.status(200).json({
+                status_code: 200,
+                type: "success",
+                message: `Danh sách tất cả các yêu cầu xin nghỉ của người dùng ${username}`,
+                data: finalResults,
+              });
+            })
+            .catch(err => {
+              console.error(err);
+              return res.status(500).json({
+                status_code: 500,
+                type: "error",
+                message: "Lỗi server",
+              });
+            });
         });
       });
     } catch (err) {
@@ -332,8 +343,9 @@ class Request {
     }
   }
 
+
   //Hàm lấy request chi tiết
-  GetDetailedRemindMedicines(req, res) {
+  GetDetailedLeaveRequest(req, res) {
     const { requestId } = req.params; // Use remindId as the parameter
     
       // Query to get the remind medicines
