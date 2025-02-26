@@ -66,7 +66,6 @@ WHERE u.id = ?`;
           sex: user.gender === 1 ? "Nam" : "Nữ",
           address: user.address,
           avatar: user.image,
-          sex: user.sex,
           classStudy: class_,
           mother: {
             name: user.mother_name,
