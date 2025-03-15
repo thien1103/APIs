@@ -10,5 +10,7 @@ router.put('/employee/info/update/:employeeId',verify.verifyToken, employeeContr
 router.put('/employee/info/changeAvatar/:employeeId', verify.verifyToken, employeeController.ChangeAvatar);
 
 router.post('/employee/getEmployeeByEnrollmentId', verify.verifyToken, employeeController.GetEmployeeByEnrollmentID)
+router.post('/employee/getClassNameByClassIDs', verify.verifyToken, employeeController.GetClassNamesByClassIDs)
+
 
 module.exports = router;

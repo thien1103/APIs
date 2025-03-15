@@ -211,6 +211,51 @@ GetEmployeeByEnrollmentID(req, res) {
 }
 
 
+GetClassNamesByClassIDs(req, res) {
+  const { classIds } = req.body; // Expecting an array of class IDs
+
+  if (!Array.isArray(classIds) || classIds.length === 0) {
+    return res.status(400).json({
+      status_code: 400,
+      type: "error",
+      message: "Invalid or empty classIds array",
+    });
+  }
+
+  // Query to fetch class names based on class IDs
+  const getClassNamesSql = `SELECT name FROM class WHERE id IN (?)`;
+
+  pool.query(getClassNamesSql, [classIds], (err, result) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).json({
+        status_code: 500,
+        type: "error",
+        message: "Lỗi server khi lấy thông tin lớp học",
+      });
+    }
+
+    if (result.length === 0) {
+      return res.status(404).json({
+        status_code: 404,
+        type: "error",
+        message: "Không tìm thấy thông tin lớp học",
+      });
+    }
+
+    // Extract class names into a single array
+    const classNames = result.map(cls => cls.name);
+
+    return res.status(200).json({
+      status_code: 200,
+      type: "success",
+      message: "Thông tin lớp học",
+      class_names: classNames, // Return as a single array field
+    });
+  });
+}
+
+
 
   UpdateEmployeeInfo(req, res) {
     const employeeId = req.params.employeeId; // Employee ID from the route parameters
